@@ -1,44 +1,71 @@
-// src/components/Header.jsx
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 50);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const navItems = ["About", "Experience", "Projects", "Skills", "Contact"];
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "bg-black/80 backdrop-blur-md" : "bg-transparent"
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <>
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-black/80 backdrop-blur-md`}
+      >
+        <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <a className="text-2xl font-bold hover:text-accent transition-colors duration-200 neon-flicker">
-            Dhruva Shetty
+            Welcome!
           </a>
 
-        <ul className="flex space-x-8 text-sm uppercase tracking-widest">
-          {["About", "Experience", "Projects", "Skills", "Contact"].map((item) => (
-            <li key={item}>
+          {/* Desktop Nav */}
+          <ul className="hidden md:flex space-x-10 text-sm uppercase tracking-widest">
+            {navItems.map((item) => (
+              <li key={item}>
+                <a
+                  href={`#${item.toLowerCase()}`}
+                  className="relative hover:text-accent transition-colors duration-200 group"
+                >
+                  {item}
+                  <span className="block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          {/* Mobile Toggle */}
+          <button
+            className="md:hidden text-white z-50"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile Nav */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ y: "-100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-[64px] md:hidden w-full bg-black text-white z-40 flex flex-col items-center py-6 space-y-6"
+          >
+            {navItems.map((item) => (
               <a
+                key={item}
                 href={`#${item.toLowerCase()}`}
-                className="relative hover:text-accent transition-colors duration-200"
+                className="uppercase tracking-wider hover:text-accent transition"
+                onClick={() => setMenuOpen(false)}
               >
                 {item}
-                <span className="block h-0.5 w-0 bg-accent transition-all duration-300 group-hover:w-full"></span>
               </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </header>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

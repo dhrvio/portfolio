@@ -1,7 +1,7 @@
 // src/components/ContactSection.jsx
 export default function ContactSection() {
     return (
-      <div id="contact" className="py-24 px-6 md:px-20 text-center">
+      <div id="contact" className="py-[150px] px-6 md:px-20 text-center bg-black rounded-4xl border border-zinc-100 my-20 h-[500px]">
         <h2 className="text-4xl font-bold neon-flicker reveal mb-6">
           Get In Touch
         </h2>

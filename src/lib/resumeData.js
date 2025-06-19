@@ -2,7 +2,7 @@
 export const resumeData = {
     personal: {
       name: "Dhruva Shetty",
-      title: "Software Engineer 2 | Frontend Engineering",
+      title: "Frontend Developer | Passionate about Crafting Engaging Web Experiences",
       phone: "9483834011",
       email: "shettydhruva6@gmail.com",
       location: "Kaup, Udupi, Karnataka, India",
@@ -52,7 +52,7 @@ export const resumeData = {
           "Implemented financial statement features including balance sheets, profit & loss statements, receipts & payments, and trial balances.",
           "Built an interactive dashboard to provide real-time insights into school operations.",
         ],
-        image: "/images/project-1.png",
+        image: "",
         link: "#", // add a live link or GitHub link if available
       },
       {
@@ -63,7 +63,7 @@ export const resumeData = {
           "Integrated product catalogs, user authentication, and secure payment processing.",
           "Ensured smooth client-side and server-side rendering (SSR/CSR) for an enhanced shopping experience.",
         ],
-        image: "/images/project-2.png",
+        image: "",
         link: "#",
       },
     ],
