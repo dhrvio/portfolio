@@ -53,7 +53,7 @@ export const resumeData = {
           "Built an interactive dashboard to provide real-time insights into school operations.",
         ],
         image: "",
-        link: "#", // add a live link or GitHub link if available
+        link: "https://skuteq.net",
       },
       {
         name: "E-Commerce Shopping App",
@@ -64,7 +64,7 @@ export const resumeData = {
           "Ensured smooth client-side and server-side rendering (SSR/CSR) for an enhanced shopping experience.",
         ],
         image: "",
-        link: "#",
+        link: "https://customer.hotmessfashion.com",
       },
     ],
     skills: [

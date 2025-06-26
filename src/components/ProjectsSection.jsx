@@ -13,9 +13,9 @@ export default function ProjectsSection() {
           {resumeData.projects.map((proj, idx) => (
             <a
               key={idx}
-              // href={proj.link || "#"}
-              // target="_blank"
-              // rel="noreferrer"
+              href={proj.link || "#"}
+              target="_blank"
+              rel="noreferrer"
               className="group block bg-primary/80 border border-text-light/20 rounded-xl overflow-hidden shadow-neon transform transition-transform duration-300 ease-out hover:scale-105 hover:rotate-1"
             >
               {/* Image with tilt */}
