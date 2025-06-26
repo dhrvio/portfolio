@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
@@ -11,19 +11,20 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-black/80 backdrop-blur-md`}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-primary/80 backdrop-blur-md`}
       >
         <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a className="text-2xl font-bold hover:text-accent transition-colors duration-200 neon-flicker">
-            Welcome!
+          <a href={`/`}
+            className="text-2xl font-bold text-accent duration-200">
+            DS
           </a>
 
           {/* Desktop Nav */}
-          <ul className="hidden md:flex space-x-10 text-sm uppercase tracking-widest">
+          <ul className="hidden md:flex space-x-10 text-sm uppercase tracking-widest text-text-light">
             {navItems.map((item) => (
               <li key={item}>
                 <a
-                  href={`#${item.toLowerCase()}`}
+                  href={`/#${item.toLowerCase()}`}
                   className="relative hover:text-accent transition-colors duration-200 group"
                 >
                   {item}
@@ -35,7 +36,7 @@ export default function Header() {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden text-white z-50"
+            className="md:hidden text-text-primary z-50"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             {menuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -51,7 +52,7 @@ export default function Header() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-[64px] md:hidden w-full bg-black text-white z-40 flex flex-col items-center py-6 space-y-6"
+            className="fixed top-[64px] md:hidden w-full bg-primary text-text-primary z-40 flex flex-col items-center py-6 space-y-6"
           >
             {navItems.map((item) => (
               <a

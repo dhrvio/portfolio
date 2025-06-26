@@ -13,8 +13,6 @@ export default function HeroSection() {
       id="hero"
       className="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden"
     >
-      {/* If you want, you can add a subtle SVG behind the text, but the video is already behind. */}
-
       {/* Glitchy Name */}
       <motion.h4
         initial={{ opacity: 0, y: -50 }}
@@ -26,10 +24,10 @@ export default function HeroSection() {
         {resumeData.personal.name}
       </motion.h4>
 
-      {/* Title*/}
+      {/* Title */}
       <SplitText
-        text= {resumeData.personal.title}
-        className="md:text-2xl font-bold text-center"
+        text={resumeData.personal.title}
+        className="md:text-2xl font-bold text-center text-text-primary md:w-[50%] break-words"
         delay={100}
         duration={0.6}
         ease="power3.out"
@@ -41,6 +39,7 @@ export default function HeroSection() {
         textAlign="center"
         onLetterAnimationComplete={handleAnimationComplete}
       />
+
       {/* Neon Underline */}
       <div className="h-0.5 md:w-2xl bg-accent mb-8 animate-pulse"></div>
 
@@ -50,7 +49,7 @@ export default function HeroSection() {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.6 }}
         href="#about"
-        className="inline-block px-8 py-4 border-2 border-accent text-accent font-semibold uppercase rounded-full hover:text-black transition-all duration-300 ease-out shadow-neon"
+        className="inline-block px-8 py-4 border-2 border-accent text-accent font-semibold uppercase rounded-full hover:bg-accent hover:text-primary transition-all duration-300 ease-out shadow-neon"
       >
         Learn More
       </motion.a>

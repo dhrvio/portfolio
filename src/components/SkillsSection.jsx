@@ -1,11 +1,10 @@
-// src/components/SkillsSection.jsx
 import { resumeData } from "../lib/resumeData";
 
 export default function SkillsSection() {
   return (
-    <section id="skills" className='py-1'>
-      <div className="py-24 px-6 md:px-20 bg-black rounded-4xl border border-zinc-100 my-20">
-        <h2 className="text-4xl font-bold text-center mb-12 neon-flicker reveal">
+    <section id="skills" className="py-1">
+      <div className="py-24 px-6 md:px-20 bg-primary rounded-4xl border border-text-light/10 my-20">
+        <h2 className="text-4xl font-bold text-center mb-12 neon-flicker reveal text-text-primary">
           Skills
         </h2>
 
@@ -13,10 +12,14 @@ export default function SkillsSection() {
           {resumeData.skills.map((skill, idx) => (
             <div key={idx} className="space-y-2 reveal">
               <div className="flex justify-between items-center">
-                <span className="font-medium">{skill.name}</span>
-                <span className="text-sm text-gray-400">{skill.level}%</span>
+                <span className="font-medium text-text-primary">
+                  {skill.name}
+                </span>
+                <span className="text-sm text-text-light/80">
+                  {skill.level}%
+                </span>
               </div>
-              <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-text-light/20 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-accent transition-all duration-1000 ease-out"
                   style={{ width: `${skill.level}%` }}
