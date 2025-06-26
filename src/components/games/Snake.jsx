@@ -7,70 +7,73 @@ export function SnakeGame() {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const gameLoopRef = useRef(null);
-  const velocityRef = useRef({ x: 0, y: 0 });
-  const gameSpeedRef = useRef(100);
+  const directionRef = useRef("right");
+  const nextDirectionRef = useRef("right");
   const lastUpdateTimeRef = useRef(0);
+  const gridSize = 20;
+  const cellSizeRef = useRef(20);
 
+  // Game elements
+  const snakeRef = useRef([{ x: 10, y: 10 }]);
+  const foodRef = useRef({ x: 5, y: 5 });
+  const speedRef = useRef(150);
+
+  // Reset game to initial state
   const resetGame = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Clear any pending game loop
-    if (gameLoopRef.current) {
-      cancelAnimationFrame(gameLoopRef.current);
-    }
-
-    // Reset game state
-    velocityRef.current = { x: 0, y: 0 };
-    gameSpeedRef.current = 100;
-    lastUpdateTimeRef.current = 0;
-
-    // Clear canvas
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw ready message
-    ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Press any arrow key to start", canvas.width / 2, canvas.height / 2);
+    snakeRef.current = [{ x: 10, y: 10 }];
+    foodRef.current = { x: 5, y: 5 };
+    directionRef.current = "right";
+    nextDirectionRef.current = "right";
+    speedRef.current = 150;
+    drawGame();
   }, []);
 
-  const drawGame = useCallback((snake, food) => {
+  // Get random position for food that's not on the snake
+  const getRandomFoodPosition = useCallback(() => {
+    let newFoodPos;
+    const snake = snakeRef.current;
+    do {
+      newFoodPos = {
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize)
+      };
+    } while (snake.some(segment => segment.x === newFoodPos.x && segment.y === newFoodPos.y));
+    return newFoodPos;
+  }, []);
+
+  // Draw the game state
+  const drawGame = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const gridSize = canvas.width / 20;
+    cellSizeRef.current = canvas.width / gridSize;
 
     // Clear canvas
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw snake
-    ctx.fillStyle = "lime";
-    snake.forEach((part, index) => {
-      // Head is slightly different color
-      const color = index === 0 ? "#4CAF50" : "#8BC34A";
-      ctx.fillStyle = color;
-      ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 1, gridSize - 1);
-      
-      // Add some styling to make it look nicer
-      ctx.strokeStyle = "#45a049";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize - 1, gridSize - 1);
+    snakeRef.current.forEach((segment, index) => {
+      const isHead = index === 0;
+      ctx.fillStyle = isHead ? "#4CAF50" : "#8BC34A";
+      ctx.fillRect(
+        segment.x * cellSizeRef.current,
+        segment.y * cellSizeRef.current,
+        cellSizeRef.current - 1,
+        cellSizeRef.current - 1
+      );
     });
 
     // Draw food
+    const food = foodRef.current;
     ctx.fillStyle = "red";
     ctx.beginPath();
     ctx.arc(
-      food.x * gridSize + gridSize / 2,
-      food.y * gridSize + gridSize / 2,
-      gridSize / 2 - 1,
+      food.x * cellSizeRef.current + cellSizeRef.current / 2,
+      food.y * cellSizeRef.current + cellSizeRef.current / 2,
+      cellSizeRef.current / 2 - 1,
       0,
       Math.PI * 2
     );
@@ -80,223 +83,193 @@ export function SnakeGame() {
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
-    ctx.fillText(`Score: ${score}`, 10, 25);
-    ctx.fillText(`High Score: ${highScore}`, 10, 50);
-  }, [score, highScore]);
 
-  const startGame = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (gameState === "ready") {
+      ctx.fillStyle = "white";
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Press any arrow key to start", canvas.width / 2, canvas.height / 2);
+    }
+  }, [score, highScore, gameState]);
 
-    const gridSize = canvas.width / 20;
-    const tileCount = 20;
-    let snake = [{ x: 10, y: 10 }];
-    let food = {
-      x: Math.floor(Math.random() * tileCount),
-      y: Math.floor(Math.random() * tileCount)
-    };
+  // Update game state
+  const updateGame = useCallback(() => {
+    const snake = snakeRef.current;
+    const food = foodRef.current;
 
-    // Make sure food doesn't spawn on snake
-    while (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
-      food = {
-        x: Math.floor(Math.random() * tileCount),
-        y: Math.floor(Math.random() * tileCount)
-      };
+    // Update direction
+    directionRef.current = nextDirectionRef.current;
+
+    // Create new head
+    const head = { ...snake[0] };
+    switch (directionRef.current) {
+      case "up": head.y -= 1; break;
+      case "down": head.y += 1; break;
+      case "left": head.x -= 1; break;
+      case "right": head.x += 1; break;
     }
 
-    let lastUpdateTime = 0;
-    let accumulatedTime = 0;
+    // Check wall collision
+    if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+      setGameState("gameover");
+      return;
+    }
 
-    const gameLoop = (currentTime) => {
-      if (gameState !== "playing") {
-        return;
-      }
+    // Check self collision
+    if (snake.some((segment, index) => index > 0 && segment.x === head.x && segment.y === head.y)) {
+      setGameState("gameover");
+      return;
+    }
 
-      gameLoopRef.current = requestAnimationFrame(gameLoop);
+    // Add new head
+    snake.unshift(head);
 
-      if (!lastUpdateTime) {
-        lastUpdateTime = currentTime;
-        return;
-      }
-
-      const deltaTime = currentTime - lastUpdateTime;
-      lastUpdateTime = currentTime;
-      accumulatedTime += deltaTime;
-
-      // Fixed time step game update
-      while (accumulatedTime >= gameSpeedRef.current) {
-        updateGame();
-        accumulatedTime -= gameSpeedRef.current;
-      }
-
-      drawGame(snake, food);
-    };
-
-    const updateGame = () => {
-      // Move snake
-      const velocity = velocityRef.current;
-      const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
-      snake.unshift(head);
-
-      // Check if snake ate food
-      if (head.x === food.x && head.y === food.y) {
-        setScore(prev => {
-          const newScore = prev + 1;
-          if (newScore > highScore) {
-            setHighScore(newScore);
-          }
-          return newScore;
-        });
-        
-        // Generate new food
-        food = {
-          x: Math.floor(Math.random() * tileCount),
-          y: Math.floor(Math.random() * tileCount)
-        };
-        
-        // Make sure food doesn't spawn on snake
-        while (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
-          food = {
-            x: Math.floor(Math.random() * tileCount),
-            y: Math.floor(Math.random() * tileCount)
-          };
+    // Check if snake ate food
+    if (head.x === food.x && head.y === food.y) {
+      // Update score
+      setScore(prev => {
+        const newScore = prev + 1;
+        if (newScore > highScore) {
+          setHighScore(newScore);
         }
+        return newScore;
+      });
 
-        // Increase speed slightly (with a minimum speed)
-        gameSpeedRef.current = Math.max(50, gameSpeedRef.current - 2);
-      } else {
-        snake.pop();
-      }
+      // Generate new food
+      foodRef.current = getRandomFoodPosition();
 
-      // Check collision with walls
-      if (
-        head.x < 0 || head.x >= tileCount ||
-        head.y < 0 || head.y >= tileCount
-      ) {
-        setGameState("gameover");
-        return;
-      }
+      // Increase speed (with minimum speed of 50ms)
+      speedRef.current = Math.max(50, speedRef.current - 5);
+    } else {
+      // Remove tail if no food was eaten
+      snake.pop();
+    }
+  }, [highScore, getRandomFoodPosition]);
 
-      // Check collision with self
-      for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-          setGameState("gameover");
-          return;
-        }
-      }
-    };
+  // Main game loop
+  const gameLoop = useCallback((timestamp) => {
+    if (gameState !== "playing") {
+      drawGame();
+      return;
+    }
 
     gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState, highScore, drawGame]);
 
+    if (!lastUpdateTimeRef.current) {
+      lastUpdateTimeRef.current = timestamp;
+    }
+
+    const elapsed = timestamp - lastUpdateTimeRef.current;
+    if (elapsed > speedRef.current) {
+      updateGame();
+      drawGame();
+      lastUpdateTimeRef.current = timestamp;
+    }
+  }, [gameState, updateGame, drawGame]);
+
+  // Handle keyboard input
+  const handleKeyDown = useCallback((e) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+      e.preventDefault();
+    }
+
+    if (gameState === "ready" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      setGameState("playing");
+      return;
+    }
+
+    if (e.key === " ") {
+      setGameState(prev => prev === "playing" ? "paused" : "playing");
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowUp":
+        if (directionRef.current !== "down") nextDirectionRef.current = "up";
+        break;
+      case "ArrowDown":
+        if (directionRef.current !== "up") nextDirectionRef.current = "down";
+        break;
+      case "ArrowLeft":
+        if (directionRef.current !== "right") nextDirectionRef.current = "left";
+        break;
+      case "ArrowRight":
+        if (directionRef.current !== "left") nextDirectionRef.current = "right";
+        break;
+    }
+  }, [gameState]);
+
+  // Handle touch input
+  const handleTouchStart = useCallback((e) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (gameState === "ready") {
+      setGameState("playing");
+      return;
+    }
+
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const dx = touchX - centerX;
+    const dy = touchY - centerY;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 0 && directionRef.current !== "left") {
+        nextDirectionRef.current = "right";
+      } else if (dx < 0 && directionRef.current !== "right") {
+        nextDirectionRef.current = "left";
+      }
+    } else {
+      if (dy > 0 && directionRef.current !== "up") {
+        nextDirectionRef.current = "down";
+      } else if (dy < 0 && directionRef.current !== "down") {
+        nextDirectionRef.current = "up";
+      }
+    }
+  }, [gameState]);
+
+  // Set up event listeners and game loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Keyboard controls
-    const keyDownHandler = (e) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-        e.preventDefault();
-      }
-
-      if (gameState === "ready" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        setGameState("playing");
-        return;
-      }
-
-      if (gameState === "playing" || gameState === "paused") {
-        if (e.key === " ") {
-          setGameState(prev => prev === "playing" ? "paused" : "playing");
-          return;
-        }
-
-        const velocity = velocityRef.current;
-        switch (e.key) {
-          case "ArrowUp":
-            if (velocity.y === 0) velocityRef.current = { x: 0, y: -1 };
-            break;
-          case "ArrowDown":
-            if (velocity.y === 0) velocityRef.current = { x: 0, y: 1 };
-            break;
-          case "ArrowLeft":
-            if (velocity.x === 0) velocityRef.current = { x: -1, y: 0 };
-            break;
-          case "ArrowRight":
-            if (velocity.x === 0) velocityRef.current = { x: 1, y: 0 };
-            break;
-        }
-      }
-    };
-
-    window.addEventListener("keydown", keyDownHandler);
-
-    // Touch controls for mobile
-    const handleTouchStart = (e) => {
-      if (gameState === "ready") {
-        setGameState("playing");
-        return;
-      }
-
-      if (!e.touches.length) return;
-      const touch = e.touches[0];
-      const canvasRect = canvas.getBoundingClientRect();
-      const touchX = touch.clientX - canvasRect.left;
-      const touchY = touch.clientY - canvasRect.top;
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-
-      const velocity = velocityRef.current;
-      const dx = touchX - centerX;
-      const dy = touchY - centerY;
-
-      // Determine primary direction of swipe
-      if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal swipe
-        if (dx > 0 && velocity.x === 0) {
-          velocityRef.current = { x: 1, y: 0 }; // Right
-        } else if (dx < 0 && velocity.x === 0) {
-          velocityRef.current = { x: -1, y: 0 }; // Left
-        }
-      } else {
-        // Vertical swipe
-        if (dy > 0 && velocity.y === 0) {
-          velocityRef.current = { x: 0, y: 1 }; // Down
-        } else if (dy < 0 && velocity.y === 0) {
-          velocityRef.current = { x: 0, y: -1 }; // Up
-        }
-      }
-    };
-
+    window.addEventListener("keydown", handleKeyDown);
     canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
 
-    // Initial setup
-    resetGame();
+    // Initialize food position
+    foodRef.current = getRandomFoodPosition();
+    drawGame();
+
+    // Start game loop
+    gameLoopRef.current = requestAnimationFrame(gameLoop);
 
     return () => {
-      window.removeEventListener("keydown", keyDownHandler);
+      window.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("touchstart", handleTouchStart);
-      if (gameLoopRef.current) {
-        cancelAnimationFrame(gameLoopRef.current);
-      }
+      cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, resetGame]);
+  }, [handleKeyDown, handleTouchStart, drawGame, gameLoop, getRandomFoodPosition]);
 
+  // Handle game state changes
   useEffect(() => {
     if (gameState === "playing") {
-      startGame();
-    } else if (gameState === "gameover") {
-      if (gameLoopRef.current) {
-        cancelAnimationFrame(gameLoopRef.current);
-      }
+      lastUpdateTimeRef.current = 0;
+      gameLoopRef.current = requestAnimationFrame(gameLoop);
     } else if (gameState === "ready") {
       resetGame();
     }
-  }, [gameState, startGame, resetGame]);
+  }, [gameState, gameLoop, resetGame]);
 
   const restartGame = () => {
     setScore(0);
+    resetGame();
     setGameState("playing");
   };
 
@@ -309,7 +282,7 @@ export function SnakeGame() {
         height={400}
         className="border-2 border-white rounded-lg bg-black"
       />
-      
+
       {gameState === "paused" && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 p-6 rounded-lg text-center">
           <p className="text-white text-2xl mb-4">Game Paused</p>
@@ -328,29 +301,22 @@ export function SnakeGame() {
           <p className="text-white text-xl mb-4">Score: {score}</p>
           <button
             onClick={restartGame}
-            className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 mr-2"
+            className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
           >
             Play Again
           </button>
         </div>
       )}
 
-      <div className="flex gap-4">
+      {gameState === 'ready' && <div className="flex gap-4">
         <button
-          onClick={() => setGameState("playing")}
-          className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700"
+          onClick={() => gameState !== "playing" && setGameState("playing")}
+          className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700 disabled:opacity-50"
           disabled={gameState === "playing"}
         >
           {gameState === "paused" ? "Resume" : "Start"}
         </button>
-        <button
-          onClick={() => setGameState("paused")}
-          className="px-4 py-2 bg-yellow-600 rounded-lg text-white hover:bg-yellow-700"
-          disabled={gameState !== "playing"}
-        >
-          Pause
-        </button>
-      </div>
+      </div>}
     </div>
   );
 }
