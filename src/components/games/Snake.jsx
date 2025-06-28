@@ -12,6 +12,7 @@ export function SnakeGame() {
   const lastUpdateTimeRef = useRef(0);
   const gridSize = 20;
   const cellSizeRef = useRef(20);
+  const touchStartRef = useRef({ x: 0, y: 0 });
 
   // Game elements
   const snakeRef = useRef([{ x: 10, y: 10 }]);
@@ -202,31 +203,34 @@ export function SnakeGame() {
   // Handle touch input
   const handleTouchStart = useCallback((e) => {
     e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
     if (gameState === "ready") {
       setGameState("playing");
       return;
     }
 
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    if (Math.max(absDx, absDy) < 30) return; // Minimum swipe distance
 
-    const dx = touchX - centerX;
-    const dy = touchY - centerY;
-
-    if (Math.abs(dx) > Math.abs(dy)) {
+    if (absDx > absDy) {
+      // Horizontal swipe
       if (dx > 0 && directionRef.current !== "left") {
         nextDirectionRef.current = "right";
       } else if (dx < 0 && directionRef.current !== "right") {
         nextDirectionRef.current = "left";
       }
     } else {
+      // Vertical swipe
       if (dy > 0 && directionRef.current !== "up") {
         nextDirectionRef.current = "down";
       } else if (dy < 0 && directionRef.current !== "down") {
@@ -242,6 +246,7 @@ export function SnakeGame() {
 
     window.addEventListener("keydown", handleKeyDown);
     canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
 
     // Initialize food position
     foodRef.current = getRandomFoodPosition();
@@ -253,9 +258,10 @@ export function SnakeGame() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchend", handleTouchEnd);
       cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [handleKeyDown, handleTouchStart, drawGame, gameLoop, getRandomFoodPosition]);
+  }, [handleKeyDown, handleTouchStart, handleTouchEnd, drawGame, gameLoop, getRandomFoodPosition]);
 
   // Handle game state changes
   useEffect(() => {
@@ -276,11 +282,14 @@ export function SnakeGame() {
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold text-white">Snake Game</h1>
+      <div className="flex justify-between w-full">
+        <p>{`Score: ${score}`}</p>
+      </div>
       <canvas
         ref={canvasRef}
         width={400}
         height={400}
-        className="border-2 border-white rounded-lg bg-black"
+        className="border-2 border-white rounded-lg bg-black touch-none"
       />
 
       {gameState === "paused" && (
@@ -308,15 +317,16 @@ export function SnakeGame() {
         </div>
       )}
 
-      {gameState === 'ready' && <div className="flex gap-4">
-        <button
-          onClick={() => gameState !== "playing" && setGameState("playing")}
-          className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700 disabled:opacity-50"
-          disabled={gameState === "playing"}
-        >
-          {gameState === "paused" ? "Resume" : "Start"}
-        </button>
-      </div>}
+      {gameState === 'ready' && (
+        <div className="flex gap-4">
+          <button
+            onClick={() => setGameState("playing")}
+            className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700"
+          >
+            Start Game
+          </button>
+        </div>
+      )}
     </div>
   );
 }

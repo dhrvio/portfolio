@@ -29,6 +29,13 @@ export function SpaceInvadersGame() {
     enemyColors: ["#00FF00", "#FF00FF", "#FFFF00", "#FF0000", "#00FFFF"]
   });
 
+  // Touch controls ref
+  const touchRef = useRef({
+    touchStartX: 0,
+    touchEndX: 0,
+    touchStartTime: 0
+  });
+
   // Enemy patterns
   const enemyPatterns = [
     // Pattern 1: Classic grid (👾)
@@ -501,6 +508,61 @@ export function SpaceInvadersGame() {
     }
   };
 
+  // Touch controls
+  const handleTouchStart = (e) => {
+    if (uiState.gameState !== "playing") return;
+    const touch = e.touches[0];
+    touchRef.current.touchStartX = touch.clientX;
+    touchRef.current.touchStartTime = Date.now();
+  };
+
+  const handleTouchMove = (e) => {
+    if (uiState.gameState !== "playing") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    gameRef.current.playerX = Math.max(15, Math.min(285, x));
+  };
+
+  const handleTouchEnd = (e) => {
+    if (uiState.gameState !== "playing") return;
+    
+    const now = Date.now();
+    const game = gameRef.current;
+    const touch = e.changedTouches[0];
+    
+    // Check if it's a tap (not a swipe)
+    if (now - touchRef.current.touchStartTime < 200 && 
+        Math.abs(touch.clientX - touchRef.current.touchStartX) < 10) {
+      if (now - game.lastShot > 600) {
+        game.bullets.push({
+          x: game.playerX - 6,
+          y: game.gameHeight - 35
+        });
+        game.lastShot = now;
+      }
+    }
+  };
+
+  // Add fire button for mobile
+  const handleFireButton = () => {
+    if (uiState.gameState !== "playing") return;
+    
+    const now = Date.now();
+    const game = gameRef.current;
+    
+    if (now - game.lastShot > 600) {
+      game.bullets.push({
+        x: game.playerX - 6,
+        y: game.gameHeight - 35
+      });
+      game.lastShot = now;
+    }
+  };
+
   useEffect(() => {
     if (uiState.gameState === "playing") {
       animate();
@@ -585,19 +647,37 @@ export function SpaceInvadersGame() {
       )}
 
       {uiState.gameState === "playing" && (
-        <div className="flex justify-between w-full px-20">
-          <p>Scrore: {uiState.score}</p>
-          <p>❤️: {uiState.lives}</p>
-          <p>Wave: {uiState.wave}/5</p>
-        </div>
+        <>
+          <div className="flex justify-between w-full px-20">
+            <p>Score: {uiState.score}</p>
+            <p>❤️: {uiState.lives}</p>
+            <p>Wave: {uiState.wave}/5</p>
+          </div>
+          
+          <canvas
+            ref={canvasRef}
+            className="border border-white rounded-md"
+            onMouseMove={handleMouseMove}
+            onClick={handleClick}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          />
+          
+          {/* Mobile fire button */}
+          <button 
+            onClick={handleFireButton}
+            className="md:hidden px-6 py-3 bg-blue-600 rounded-full text-xl"
+          >
+            FIRE 🔺
+          </button>
+          
+          {/* Mobile controls instructions */}
+          <div className="md:hidden text-sm text-gray-400">
+            Swipe to move | Tap to shoot
+          </div>
+        </>
       )}
-
-      <canvas
-        ref={canvasRef}
-        className={`border border-white rounded-md ${uiState.gameState !== "playing" ? "hidden" : ""}`}
-        onMouseMove={handleMouseMove}
-        onClick={handleClick}
-      />
     </div>
   );
 }

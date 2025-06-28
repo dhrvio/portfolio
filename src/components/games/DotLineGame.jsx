@@ -21,6 +21,9 @@ export default function DotLineGame() {
     paddleWidth: 80
   });
 
+  // Touch position ref
+  const touchPosRef = useRef({ x: 0 });
+
   // Update paddle width when difficulty changes
   useEffect(() => {
     gameRef.current.paddleWidth = 
@@ -176,6 +179,37 @@ export default function DotLineGame() {
     }
   };
 
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    if (uiState.gameState !== "playing") return;
+    const touch = e.touches[0];
+    const rect = canvasRef.current.getBoundingClientRect();
+    touchPosRef.current.x = touch.clientX - rect.left;
+    gameRef.current.mouseX = touch.clientX - rect.left;
+  };
+
+  const handleTouchMove = (e) => {
+    e.preventDefault();
+    if (uiState.gameState !== "playing") return;
+    const touch = e.touches[0];
+    const rect = canvasRef.current.getBoundingClientRect();
+    gameRef.current.mouseX = touch.clientX - rect.left;
+  };
+
+  // Set up touch event listeners
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.addEventListener("touchstart", handleTouchStart);
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [uiState.gameState]);
+
   return (
     <div className="flex flex-col items-center gap-4">
       {uiState.gameState === "menu" && (
@@ -231,10 +265,12 @@ export default function DotLineGame() {
           </button>
         </div>
       )}
-        {uiState.gameState === "playing" && <div className="flex justify-between w-full px-20">
-            <p>Score: {uiState.score}</p>
-            <p>Lives: {uiState.lives}</p>
-            </div>}
+      
+      {uiState.gameState === "playing" && <div className="flex justify-between w-full px-20">
+        <p>Score: {uiState.score}</p>
+        <p>Lives: {uiState.lives}</p>
+      </div>}
+      
       <canvas
         ref={canvasRef}
         className={`border border-white rounded-md ${uiState.gameState !== "playing" ? "hidden" : ""}`}

@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 export function BrickBreakerGame() {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
+  const containerRef = useRef(null);
   const [uiState, setUiState] = useState({
     gameState: "menu",
-    score: 0, // Now represents time in seconds
+    score: 0, // Represents time in seconds
     lives: 3,
     difficulty: "medium"
   });
@@ -29,7 +30,9 @@ export function BrickBreakerGame() {
       offsetTop: 30,
       offsetLeft: 60
     },
-    lastTime: 0
+    lastTime: 0,
+    touchStartX: 0,
+    touchCurrentX: 0
   });
 
   // Timer for score
@@ -76,7 +79,7 @@ export function BrickBreakerGame() {
     ctx.fillRect(0, 0, width, 30);
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
-    ctx.fillText(`Time: ${uiState.score}s`, 10, 20);
+    ctx.fillText(`Time: ${formatTime(uiState.score)}`, 10, 20);
     ctx.fillText(`Lives: ${uiState.lives}`, width - 80, 20);
   }, [uiState.score, uiState.lives, uiState.gameState]);
 
@@ -98,7 +101,9 @@ export function BrickBreakerGame() {
       dx: 0.5,
       paddleWidth: uiState.difficulty === "easy" ? 120 : 
                  uiState.difficulty === "medium" ? 80 : 60,
-      lastTime: Date.now()
+      lastTime: Date.now(),
+      touchStartX: 0,
+      touchCurrentX: 0
     };
     
     // Reset bricks
@@ -249,9 +254,64 @@ export function BrickBreakerGame() {
 
   const handleMouseMove = (e) => {
     if (uiState.gameState === "playing") {
-      gameRef.current.mouseX = e.nativeEvent.offsetX;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      gameRef.current.mouseX = (e.clientX - rect.left) * scaleX;
     }
   };
+
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    if (uiState.gameState !== "playing") return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    gameRef.current.touchStartX = (touch.clientX - rect.left) * scaleX;
+    gameRef.current.touchCurrentX = gameRef.current.touchStartX;
+  };
+
+  const handleTouchMove = (e) => {
+    if (uiState.gameState !== "playing") return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    gameRef.current.touchCurrentX = (touch.clientX - rect.left) * scaleX;
+    gameRef.current.mouseX = gameRef.current.touchCurrentX;
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    // Add event listeners
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [uiState.gameState]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -260,42 +320,46 @@ export function BrickBreakerGame() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4 p-4" ref={containerRef}>
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
-          <h1 className="text-2xl font-bold">Brick Breaker</h1>
-          <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-4 p-6 bg-gray-800 rounded-lg max-w-md w-full">
+          <h1 className="text-2xl font-bold text-center">Brick Breaker</h1>
+          <div className="flex flex-col gap-3 w-full">
+            <h2 className="text-lg font-semibold">Difficulty:</h2>
+            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
+                className="w-4 h-4"
                 checked={uiState.difficulty === "easy"} 
                 onChange={() => setUiState(prev => ({ ...prev, difficulty: "easy" }))} 
               />
-              Easy
+              Easy (Wide Paddle)
             </label>
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
+                className="w-4 h-4"
                 checked={uiState.difficulty === "medium"} 
                 onChange={() => setUiState(prev => ({ ...prev, difficulty: "medium" }))} 
               />
-              Medium
+              Medium (Normal Paddle)
             </label>
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
+                className="w-4 h-4"
                 checked={uiState.difficulty === "hard"} 
                 onChange={() => setUiState(prev => ({ ...prev, difficulty: "hard" }))} 
               />
-              Hard
+              Hard (Narrow Paddle)
             </label>
           </div>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors w-full text-lg font-semibold"
           >
             Start Game
           </button>
@@ -303,14 +367,15 @@ export function BrickBreakerGame() {
       )}
 
       {(uiState.gameState === "gameover" || uiState.gameState === "win") && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
+        <div className="flex flex-col items-center gap-4 p-6 bg-gray-800 rounded-lg max-w-md w-full">
           <h1 className="text-2xl font-bold">
-            {uiState.gameState === "win" ? "You Win!" : "Game Over"}
+            {uiState.gameState === "win" ? "🎉 You Win! 🎉" : "😢 Game Over 😢"}
           </h1>
           <p className="text-xl">Time: {formatTime(uiState.score)}</p>
+          <p className="text-lg">Difficulty: {uiState.difficulty.charAt(0).toUpperCase() + uiState.difficulty.slice(1)}</p>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors w-full text-lg font-semibold"
           >
             Play Again
           </button>
@@ -318,17 +383,22 @@ export function BrickBreakerGame() {
       )}
 
       {uiState.gameState === "playing" && (
-        <div className="flex justify-between w-full px-20">
-          <p>Time: {formatTime(uiState.score)}</p>
-          <p>Lives: {uiState.lives}</p>
-        </div>
+        <>
+          <div className="flex justify-between w-full max-w-[300px] px-4">
+            <p className="text-lg">⏱️ {formatTime(uiState.score)}</p>
+            <p className="text-lg">❤️ {uiState.lives}</p>
+          </div>
+          <canvas
+            ref={canvasRef}
+            className="border-2 border-gray-600 rounded-lg bg-black touch-none"
+            width={300}
+            height={400}
+          />
+          <div className="text-sm text-gray-400 mt-2">
+            {window.innerWidth < 768 ? "Swipe to move paddle" : "Move mouse to control paddle"}
+          </div>
+        </>
       )}
-
-      <canvas
-        ref={canvasRef}
-        className={`border border-white rounded-md ${uiState.gameState !== "playing" ? "hidden" : ""}`}
-        onMouseMove={handleMouseMove}
-      />
     </div>
   );
 }

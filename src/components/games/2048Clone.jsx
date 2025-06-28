@@ -8,6 +8,7 @@ export function Game2048() {
 
   const containerRef = useRef(null);
   const touchStart = useRef({ x: 0, y: 0 });
+  const touchEnd = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     startGame();
@@ -144,22 +145,29 @@ export function Game2048() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [grid, gameOver]);
 
-  // Mouse/touch swipe controls
+  // Touch controls
   useEffect(() => {
     const handleTouchStart = (e) => {
+      e.preventDefault();
       const touch = e.touches[0];
       touchStart.current = { x: touch.clientX, y: touch.clientY };
+      touchEnd.current = { x: touch.clientX, y: touch.clientY };
+    };
+
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      touchEnd.current = { x: touch.clientX, y: touch.clientY };
     };
 
     const handleTouchEnd = (e) => {
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - touchStart.current.x;
-      const dy = touch.clientY - touchStart.current.y;
-
+      e.preventDefault();
+      const dx = touchEnd.current.x - touchStart.current.x;
+      const dy = touchEnd.current.y - touchStart.current.y;
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
 
-      if (Math.max(absDx, absDy) > 30) {
+      if (Math.max(absDx, absDy) > 10) { // threshold for minimal swipe
         if (absDx > absDy) {
           moveTiles(dx > 0 ? "right" : "left");
         } else {
@@ -170,12 +178,14 @@ export function Game2048() {
 
     const node = containerRef.current;
     if (node) {
-      node.addEventListener("touchstart", handleTouchStart);
-      node.addEventListener("touchend", handleTouchEnd);
+      node.addEventListener("touchstart", handleTouchStart, { passive: false });
+      node.addEventListener("touchmove", handleTouchMove, { passive: false });
+      node.addEventListener("touchend", handleTouchEnd, { passive: false });
     }
     return () => {
       if (node) {
         node.removeEventListener("touchstart", handleTouchStart);
+        node.removeEventListener("touchmove", handleTouchMove);
         node.removeEventListener("touchend", handleTouchEnd);
       }
     };
