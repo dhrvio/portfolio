@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "../components/Header";
 import PageLoader from "../components/PageLoader";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata = {
   title: "Dhruva Shetty — Frontend Portfolio",
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
           <Header />
           {children}
         </PageLoader>
+        <SpeedInsights />
       </body>
     </html>
   );
