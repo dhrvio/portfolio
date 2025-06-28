@@ -7,13 +7,22 @@ import ContactSection from "../components/ContactSection";
 import ParallaxSection from "../components/ParallaxSection";
 import DotGrid from "@/components/DotGrid";
 import HRSection from "@/components/HRSection";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       {/* BACKGROUND IMAGE (lowest layer) */}
       <div className="absolute top-[64px] w-full h-[calc(100vh-64px)] z-0">
-        <img src="/images/bg2.png" alt="bg" className="w-full h-full object-cover" />
+        <div className="w-full h-full relative">
+          <Image
+            src="/images/bg2.png"
+            alt="bg"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
       </div>
 
       {/* DOT GRID (above image) */}

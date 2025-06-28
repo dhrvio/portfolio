@@ -8,6 +8,7 @@ import GameModal from "@/components/games/GameModel";
 import { MemoryMatchGame } from "@/components/games/MemoryMatch";
 import { SnakeGame } from "@/components/games/Snake";
 import { SpaceInvadersGame } from "@/components/games/SpaceInvaders";
+import Image from "next/image";
 
 const games = [
   {
@@ -55,10 +56,12 @@ export default function GamesPage() {
     <div className="relative min-h-screen text-text-primary">
       {/* Background Image */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
-        <img
+        <Image
           src="/images/gamesbg.png"
           alt="bg"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          priority
         />
       </div>
 

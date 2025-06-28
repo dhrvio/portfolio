@@ -18,7 +18,7 @@ export default function HeroSection() {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: "easeOut" }}
-        className="text-4xl md:text-4xl font- uppercase neon-flicker mb-4"
+        className="text-5xl md:text-9xl uppercase neon-flicker mb-4 text-accent/15"
         style={{ animation: "neon-flicker 3s infinite alternate" }}
       >
         {resumeData.personal.name}
