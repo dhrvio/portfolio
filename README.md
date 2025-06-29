@@ -21,16 +21,14 @@ Experience it yourself: [dhrvio.vercel.app](https://dhrvio.vercel.app/)
 
 ## 📂 Project Structure
 
+```bash
 .
 ├── app/ # Next.js App Router and pages
 ├── components/ # Reusable UI elements (navbar, cards, form)
 ├── public/ # Static assets (images, fonts)
 ├── styles/ # Tailwind config and global styles
 └── lib/ # Helper data & utils
-
-bash
-Copy
-Edit
+```
 
 ## 🛠️ Getting Started
 
@@ -40,20 +38,18 @@ cd portfolio
 npm install
 npm run dev
 Visit http://localhost:3000 to view locally.
+```
 
-🚢 Deployment
+## 🚢 Deployment
 Deployed automatically via Vercel using the App Router — any push to main or master branch triggers redeployment.
 
-🌟 Why This Stack?
-Next.js ensures blazingly fast page loads via SSR/SSG
+## 🌟 Why This Stack?
+- Next.js ensures blazingly fast page loads via SSR/SSG
+- Tailwind empowers rapid styling with low bundle sizes
+- Framer Motion adds that polished, interactive feel
+- Vercel simplifies scaling and global distribution
 
-Tailwind empowers rapid styling with low bundle sizes
-
-Framer Motion adds that polished, interactive feel
-
-Vercel simplifies scaling and global distribution
-
-📋 License & Contributions
+## 📋 License & Contributions
 This repo is open‑source under the MIT License. Contributions, insights, or design suggestions are warmly welcome!
 
-Crafted with 💜 by Dhrvio
+## Crafted with 💜 by Dhrvio

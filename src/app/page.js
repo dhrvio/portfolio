@@ -11,7 +11,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden break-words">
       {/* BACKGROUND IMAGE (lowest layer) */}
       <div className="absolute top-[64px] w-full h-[calc(100vh-64px)] z-0">
         <div className="w-full h-full relative">
