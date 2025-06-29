@@ -27,7 +27,7 @@ export default function HeroSection() {
       {/* Title */}
       <SplitText
         text={resumeData.personal.title}
-        className="md:text-2xl font-bold text-center text-text-primary md:w-[50%] wrap-normal"
+        className="md:text-2xl font-bold text-center text-text-primary md:w-[50%]"
         delay={100}
         duration={0.6}
         ease="power3.out"
