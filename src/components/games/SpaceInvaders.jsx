@@ -577,8 +577,7 @@ export function SpaceInvadersGame() {
   return (
     <div className="flex flex-col items-center gap-4">
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
-          <h1 className="text-2xl font-bold">Space Invaders 👾🚀</h1>
+        <div className="flex flex-col items-center gap-4 p-4 rounded-lg">
           <p className="text-center">Complete 5 waves to win!</p>
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2">
@@ -611,7 +610,7 @@ export function SpaceInvadersGame() {
           </div>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
           >
             Start Game 🚀
           </button>
@@ -625,7 +624,7 @@ export function SpaceInvadersGame() {
           <p className="text-xl">Waves: {uiState.wave}</p>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-4 py-2 bg-accent rounded hover:bg-accent/50"
           >
             Play Again 🔄
           </button>
@@ -639,7 +638,7 @@ export function SpaceInvadersGame() {
           <p className="text-xl">You completed all 5 waves!</p>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-4 py-2 bg-accent rounded hover:bg-accent/50"
           >
             Play Again 🔄
           </button>
@@ -667,7 +666,7 @@ export function SpaceInvadersGame() {
           {/* Mobile fire button */}
           <button 
             onClick={handleFireButton}
-            className="md:hidden px-6 py-3 bg-blue-600 rounded-full text-xl"
+            className="md:hidden px-6 py-3 bg-accent rounded-full text-xl"
           >
             FIRE 🔺
           </button>

@@ -78,7 +78,7 @@ export function MemoryMatchGame() {
             key={card.id}
             onClick={() => handleCardClick(card.id)}
             className={`w-16 h-16 flex items-center justify-center text-2xl rounded cursor-pointer 
-              ${card.flipped || solved.includes(card.id) ? 'bg-white' : 'bg-blue-600'}
+              ${card.flipped || solved.includes(card.id) ? 'bg-white' : 'bg-accent text-text-primary'}
               ${solved.includes(card.id) ? 'opacity-50' : ''}`}
           >
             {card.flipped || solved.includes(card.id) ? card.symbol : '?'}

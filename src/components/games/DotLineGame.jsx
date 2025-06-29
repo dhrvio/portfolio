@@ -48,7 +48,7 @@ export default function DotLineGame() {
     ctx.clearRect(width - 100, 0, 100, 30);
 
     // Draw updated UI
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "black";
     ctx.font = "16px Arial";
     ctx.fillText(`Score: ${uiState.score}`, 10, 20);
     ctx.fillText(`Lives: ${uiState.lives}`, width - 80, 20);
@@ -213,8 +213,7 @@ export default function DotLineGame() {
   return (
     <div className="flex flex-col items-center gap-4">
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
-          <h1 className="text-2xl font-bold">Dot Bounce Game</h1>
+        <div className="flex flex-col items-center gap-4 p-4  font-bold rounded-lg">
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2">
               <input 
@@ -246,7 +245,7 @@ export default function DotLineGame() {
           </div>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
           >
             Start Game
           </button>
@@ -254,26 +253,26 @@ export default function DotLineGame() {
       )}
 
       {uiState.gameState === "gameover" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
+        <div className="flex flex-col items-center gap-4 p-4  rounded-lg">
           <h1 className="text-2xl font-bold">Game Over</h1>
           <p className="text-xl">Your score: {uiState.score}</p>
           <button 
             onClick={startGame}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+            className="px-4 py-2 bg-accent text-text-primary rounded hover:bg-accent/50"
           >
             Play Again
           </button>
         </div>
       )}
       
-      {uiState.gameState === "playing" && <div className="flex justify-between w-full px-20">
+      {uiState.gameState === "playing" && <div className="flex justify-between w-full px-20 ">
         <p>Score: {uiState.score}</p>
         <p>Lives: {uiState.lives}</p>
       </div>}
       
       <canvas
         ref={canvasRef}
-        className={`border border-white rounded-md ${uiState.gameState !== "playing" ? "hidden" : ""}`}
+        className={`border border-white bg-accent/10 rounded-md ${uiState.gameState !== "playing" ? "hidden" : ""}`}
         onMouseMove={handleMouseMove}
       />
     </div>

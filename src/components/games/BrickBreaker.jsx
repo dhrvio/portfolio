@@ -75,7 +75,7 @@ export function BrickBreakerGame() {
     const width = canvas.width;
     
     // Clear and redraw UI area
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, width, 30);
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
@@ -132,7 +132,7 @@ export function BrickBreakerGame() {
     // Draw paddle
     ctx.beginPath();
     ctx.rect(mouseX - paddleWidth/2, canvas.height - 15, paddleWidth, 10);
-    ctx.fillStyle = "#0095DD";
+    ctx.fillStyle = "white";
     ctx.fill();
     ctx.closePath();
     
@@ -146,7 +146,7 @@ export function BrickBreakerGame() {
           bricks[c][r].y = brickY;
           ctx.beginPath();
           ctx.rect(brickX, brickY, brickConfig.width, brickConfig.height);
-          ctx.fillStyle = "#0095DD";
+          ctx.fillStyle = "white";
           ctx.fill();
           ctx.closePath();
         }
@@ -322,11 +322,10 @@ export function BrickBreakerGame() {
   return (
     <div className="flex flex-col items-center gap-4 p-4" ref={containerRef}>
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-6 bg-gray-800 rounded-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold text-center">Brick Breaker</h1>
-          <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col items-center gap-4 p-6 rounded-lg max-w-md w-full">
+          <div className="flex flex-col gap-3 w-full  font-bold">
             <h2 className="text-lg font-semibold">Difficulty:</h2>
-            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
+            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
@@ -336,7 +335,7 @@ export function BrickBreakerGame() {
               />
               Easy (Wide Paddle)
             </label>
-            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
+            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
@@ -346,7 +345,7 @@ export function BrickBreakerGame() {
               />
               Medium (Normal Paddle)
             </label>
-            <label className="flex items-center gap-3 p-2 bg-gray-700 rounded cursor-pointer">
+            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
               <input 
                 type="radio" 
                 name="difficulty" 
@@ -359,7 +358,7 @@ export function BrickBreakerGame() {
           </div>
           <button 
             onClick={startGame}
-            className="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors w-full text-lg font-semibold"
+            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
           >
             Start Game
           </button>
@@ -367,15 +366,15 @@ export function BrickBreakerGame() {
       )}
 
       {(uiState.gameState === "gameover" || uiState.gameState === "win") && (
-        <div className="flex flex-col items-center gap-4 p-6 bg-gray-800 rounded-lg max-w-md w-full">
+        <div className="flex flex-col items-center gap-4 p-6  rounded-lg max-w-md w-full">
           <h1 className="text-2xl font-bold">
-            {uiState.gameState === "win" ? "🎉 You Win! 🎉" : "😢 Game Over 😢"}
+            {uiState.gameState === "win" ? "You Win!" : "Game Over"}
           </h1>
           <p className="text-xl">Time: {formatTime(uiState.score)}</p>
           <p className="text-lg">Difficulty: {uiState.difficulty.charAt(0).toUpperCase() + uiState.difficulty.slice(1)}</p>
           <button 
             onClick={startGame}
-            className="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors w-full text-lg font-semibold"
+            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
           >
             Play Again
           </button>
@@ -384,17 +383,17 @@ export function BrickBreakerGame() {
 
       {uiState.gameState === "playing" && (
         <>
-          <div className="flex justify-between w-full max-w-[300px] px-4">
+          <div className="flex justify-between w-full max-w-[300px]  px-4">
             <p className="text-lg">⏱️ {formatTime(uiState.score)}</p>
             <p className="text-lg">❤️ {uiState.lives}</p>
           </div>
           <canvas
             ref={canvasRef}
-            className="border-2 border-gray-600 rounded-lg bg-black touch-none"
+            className="border-2 border-primary rounded-lg bg-accent/50 touch-none"
             width={300}
             height={400}
           />
-          <div className="text-sm text-gray-400 mt-2">
+          <div className="text-sm  mt-2">
             {window.innerWidth < 768 ? "Swipe to move paddle" : "Move mouse to control paddle"}
           </div>
         </>

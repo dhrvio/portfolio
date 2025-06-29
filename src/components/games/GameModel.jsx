@@ -13,15 +13,15 @@ export default function GameModal({ isOpen, onClose, title, children }) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-gray-800 p-6 rounded-xl w-[90%] max-w-md relative"
+            className="bg-primary text-accent p-6 rounded-xl w-[90%] max-w-md relative"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.8 }}
           >
-            <button className="absolute top-3 right-3 text-white" onClick={onClose}>
-              <X size={24} />
+            <button className="absolute top-5 right-5" onClick={onClose}>
+              <X size={34} />
             </button>
-            <h2 className="text-2xl font-bold mb-4">{title}</h2>
+            <h2 className="text-2xl  font-bold mb-4">{title}</h2>
             {children}
           </motion.div>
         </motion.div>

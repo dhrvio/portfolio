@@ -281,23 +281,22 @@ export function SnakeGame() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <h1 className="text-2xl font-bold text-white">Snake Game</h1>
       <div className="flex justify-between w-full">
         <p>{`Score: ${score}`}</p>
       </div>
       <canvas
         ref={canvasRef}
-        width={400}
+        width={300}
         height={400}
-        className="border-2 border-white rounded-lg bg-black touch-none"
+        className="border-2 border-text-primary rounded-lg bg-accent touch-none"
       />
 
       {gameState === "paused" && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 p-6 rounded-lg text-center">
-          <p className="text-white text-2xl mb-4">Game Paused</p>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-accent bg-opacity-80 p-6 rounded-lg text-center">
+          <p className="text-text-primary text-2xl mb-4">Game Paused</p>
           <button
             onClick={() => setGameState("playing")}
-            className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700"
+            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50"
           >
             Resume
           </button>
@@ -310,7 +309,7 @@ export function SnakeGame() {
           <p className="text-white text-xl mb-4">Score: {score}</p>
           <button
             onClick={restartGame}
-            className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
+            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50 h-full w-full"
           >
             Play Again
           </button>
@@ -321,7 +320,7 @@ export function SnakeGame() {
         <div className="flex gap-4">
           <button
             onClick={() => setGameState("playing")}
-            className="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700"
+            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50"
           >
             Start Game
           </button>

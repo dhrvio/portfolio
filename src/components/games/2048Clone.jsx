@@ -212,13 +212,13 @@ export function Game2048() {
   return (
     <div className="flex flex-col items-center" ref={containerRef}>
       <div className="mb-4 flex justify-between w-full max-w-xs">
-        <div className="text-xl font-bold">Score: {score}</div>
-        <button onClick={startGame} className="px-4 py-1 bg-blue-600 rounded">
+        <div className="text-xl font-bold ">Score: {score}</div>
+        <button onClick={startGame} className="px-4 py-1 font-bold text-xl bg-accent text-text-primary rounded">
           New Game
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 bg-gray-900 p-2 rounded">
+      <div className="grid grid-cols-4 gap-2 bg-accent p-2 rounded">
         {grid.map((value, index) => (
           <div
             key={index}
@@ -236,7 +236,7 @@ export function Game2048() {
           <p className="text-white text-xl">Game Over!</p>
           <button
             onClick={startGame}
-            className="mt-2 px-4 py-1 bg-blue-600 rounded"
+            className="mt-2 px-4 py-1 bg-accent text-text-primary rounded"
           >
             Try Again
           </button>
