@@ -61,11 +61,11 @@ export function MemoryMatchGame() {
       <div className="mb-4">
         <p>Moves: {moves}</p>
         {solved.length === cards.length && cards.length > 0 && (
-          <div className="mt-2 p-2 bg-green-800 rounded">
+          <div className="mt-2 p-2 rounded">
             <p>You won in {moves} moves!</p>
             <button 
               onClick={initializeGame}
-              className="mt-2 px-4 py-1 bg-blue-600 rounded"
+              className="mt-2 px-4 py-1 bg-accent text-text-primary rounded"
             >
               Play Again
             </button>

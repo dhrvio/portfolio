@@ -232,7 +232,7 @@ export function Game2048() {
       </div>
 
       {gameOver && (
-        <div className="mt-4 p-4 bg-red-900 rounded-lg text-center">
+        <div className="mt-4 p-4 rounded-lg text-center">
           <p className="text-white text-xl">Game Over!</p>
           <button
             onClick={startGame}

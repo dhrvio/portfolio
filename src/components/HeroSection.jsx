@@ -4,10 +4,6 @@ import { motion } from "framer-motion";
 import SplitText from "./SplitText";
 
 export default function HeroSection() {
-  const handleAnimationComplete = () => {
-    console.log('All letters have animated!');
-  };
-
   return (
     <div
       id="hero"
@@ -27,7 +23,7 @@ export default function HeroSection() {
       {/* Title */}
       <SplitText
         text={resumeData.personal.title}
-        className="md:text-2xl font-bold text-center text-text-primary md:w-[50%]"
+        className="md:text-2xl font-semibold text-center text-text-primary"
         delay={100}
         duration={0.6}
         ease="power3.out"
@@ -37,7 +33,6 @@ export default function HeroSection() {
         threshold={0.1}
         rootMargin="-100px"
         textAlign="center"
-        onLetterAnimationComplete={handleAnimationComplete}
       />
 
       {/* Neon Underline */}
