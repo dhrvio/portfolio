@@ -3,48 +3,54 @@ import { resumeData } from "../lib/resumeData";
 
 export default function ProjectsSection() {
   return (
-    <section id="projects" className="py-1">
-      <div className="py-24 px-6 md:px-20 bg-primary rounded-4xl border border-text-light/10 my-20">
-        <h2 className="text-4xl font-bold text-center mb-12 neon-flicker reveal text-text-primary">
-          Projects
-        </h2>
+    <section id="projects" className="px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="reveal mb-10 text-center">
+          <p className="font-pixel text-xs uppercase text-highlight">
+            Cartridge Library
+          </p>
+          <h2 className="mt-3 font-pixel text-3xl font-black uppercase md:text-5xl">
+            Projects
+          </h2>
+        </div>
 
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {resumeData.projects.map((proj, idx) => (
-            <a
-              key={idx}
-              href={proj.link || "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="group block bg-primary/80 border border-text-light/20 rounded-xl overflow-hidden shadow-neon transform transition-transform duration-300 ease-out hover:scale-105 hover:rotate-1"
-            >
-              {/* Image with tilt */}
-              {proj.image && (
-                <div className="relative h-56 w-full overflow-hidden">
+        <div className="grid gap-6 md:grid-cols-2">
+          {resumeData.projects.map((project) => (
+            <article key={project.name} className="pixel-card reveal overflow-hidden">
+              {project.image ? (
+                <div className="relative h-48 border-b-2 border-ink">
                   <Image
-                    src={proj.image}
-                    alt={proj.name}
+                    src={project.image}
+                    alt={project.name}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="object-cover pixelated"
                   />
+                </div>
+              ) : (
+                <div className="pixel-grid flex h-40 items-center justify-center border-b-2 border-ink bg-screen">
+                  <span className="font-pixel text-5xl font-black text-screen-dark">
+                    {project.name.slice(0, 2)}
+                  </span>
                 </div>
               )}
 
-              {/* Content */}
-              <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-semibold neon-flicker group-hover:text-accent transition-colors duration-300 text-text-primary">
-                  {proj.name}
+              <div className="space-y-4 p-6">
+                <h3 className="font-pixel text-xl font-black uppercase leading-snug">
+                  {project.name}
                 </h3>
-                <p className="text-text-light">{proj.description}</p>
-                <ul className="list-disc list-inside text-text-light/80 space-y-1 text-sm">
-                  {proj.bullets.map((bullet, i) => (
-                    <li key={i} className="hover:text-accent transition-colors">
-                      {bullet}
+                <p className="leading-7">{project.description}</p>
+                <ul className="space-y-3 text-sm leading-6">
+                  {project.bullets.map((bullet) => (
+                    <li key={bullet} className="flex gap-3">
+                      <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-primary" />
+                      <span>{bullet}</span>
                     </li>
                   ))}
                 </ul>
+                {/* Project redirection is intentionally disabled for now. */}
+                {/* <a href={project.link} target="_blank" rel="noreferrer">Open project</a> */}
               </div>
-            </a>
+            </article>
           ))}
         </div>
       </div>

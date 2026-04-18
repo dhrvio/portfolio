@@ -2,41 +2,47 @@ import { resumeData } from "../lib/resumeData";
 
 export default function ExperienceSection() {
   return (
-    <section id="experience" className="py-1">
-      <div className="py-24 px-6 md:px-20 bg-primary rounded-4xl border border-text-light/10 my-40">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <h2 className="text-4xl font-bold text-center mb-8 neon-flicker reveal text-text-primary">
-            Experience
-          </h2>
+    <section id="experience" className="px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="reveal">
+            <p className="font-pixel text-xs uppercase text-highlight">
+              Campaign Progress
+            </p>
+            <h2 className="mt-3 font-pixel text-3xl font-black uppercase md:text-5xl">
+              Experience
+            </h2>
+          </div>
+          <p className="reveal max-w-xl text-text-light">
+            Frontend work across startup-paced product teams, with a focus on
+            responsive interfaces, production polish, and fast iteration.
+          </p>
+        </div>
 
-          {resumeData.experience.map((job, idx) => (
-            <div
-              key={idx}
-              className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start reveal"
+        <div className="space-y-6">
+          {resumeData.experience.map((job) => (
+            <article
+              key={`${job.role}-${job.date}`}
+              className="pixel-card reveal grid gap-5 p-5 md:grid-cols-[180px_1fr] md:p-6"
             >
-              {/* Date */}
-              <div className="md:col-span-1 text-accent text-sm uppercase tracking-wide">
+              <div className="font-pixel text-xs uppercase text-primary">
                 {job.date}
               </div>
-
-              {/* Content */}
-              <div className="md:col-span-3 space-y-3">
-                <h3 className="text-2xl font-semibold text-text-primary">
+              <div>
+                <h3 className="font-pixel text-xl font-black uppercase leading-snug">
                   {job.role}
                 </h3>
-                <p className="italic text-text-light/80">{job.company}</p>
-                <ul className="space-y-2 ml-4 list-disc list-inside text-text-light">
-                  {job.bulletPoints.map((bullet, i) => (
-                    <li
-                      key={i}
-                      className="hover:text-accent transition-colors duration-200"
-                    >
-                      {bullet}
+                <p className="mt-2 font-bold text-primary">{job.company}</p>
+                <ul className="mt-4 space-y-3 text-sm leading-6">
+                  {job.bulletPoints.map((bullet) => (
+                    <li key={bullet} className="flex gap-3">
+                      <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-accent" />
+                      <span>{bullet}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

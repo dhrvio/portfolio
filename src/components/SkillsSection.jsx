@@ -1,45 +1,43 @@
-import { resumeData } from "../lib/resumeData";
 import Image from "next/image";
+import { resumeData } from "../lib/resumeData";
 
 export default function SkillsSection() {
   return (
-    <section id="skills" className="py-1 relative overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 flex justify-center items-center -z-10 bg-primary rounded-4xl border border-text-light/10">
+    <section id="skills" className="px-5 py-16 md:py-24">
+      <div className="pixel-panel relative mx-auto max-w-6xl overflow-hidden p-6 md:p-8">
         <Image
-          src="/images/techstack.png"
-          alt="Tech Stack Background"
+          src="/images/gba/ships.png"
+          alt=""
           fill
-          className="object-contain opacity-20"
-          priority
+          className="pixelated pointer-events-none object-cover opacity-10"
+          sizes="100vw"
         />
-      </div>
+        <div className="relative">
+          <div className="reveal mb-10 text-center">
+            <p className="font-pixel text-xs uppercase text-highlight">
+              Equipped Items
+            </p>
+            <h2 className="mt-3 font-pixel text-3xl font-black uppercase md:text-5xl">
+              Skills
+            </h2>
+          </div>
 
-      {/* Skills Content */}
-      <div className="relative py-4 px-6 md:px-20 my-20">
-        <h2 className="text-6xl font-bold text-center mb-12 neon-flicker reveal text-text-primary">
-          Skills
-        </h2>
-
-        <div className="max-w-4xl mx-auto space-y-8">
-          {resumeData.skills.map((skill, idx) => (
-            <div key={idx} className="space-y-2 reveal">
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-text-primary">
-                  {skill.name}
-                </span>
-                <span className="text-sm text-text-light/80">
-                  {skill.level}%
-                </span>
+          <div className="mx-auto grid max-w-4xl gap-5">
+            {resumeData.skills.map((skill) => (
+              <div key={skill.name} className="reveal">
+                <div className="mb-2 flex items-center justify-between gap-4 font-pixel text-xs uppercase">
+                  <span>{skill.name}</span>
+                  <span className="text-highlight">{skill.level}%</span>
+                </div>
+                <div className="h-5 border-2 border-ink bg-background shadow-raised">
+                  <div
+                    className="h-full bg-screen"
+                    style={{ width: `${skill.level}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-3 bg-text-light/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent transition-all duration-1000 ease-out"
-                  style={{ width: `${skill.level}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>

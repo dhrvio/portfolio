@@ -1,680 +1,335 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
+
+const palette = {
+  ink: "#171923",
+  screen: "#a7c957",
+  screenDark: "#2f4f2f",
+  accent: "#ff6b6b",
+  highlight: "#ffd166",
+  primary: "#4f4a7f",
+};
+
+const difficultySpeed = {
+  easy: 0.55,
+  medium: 0.8,
+  hard: 1.05,
+};
+
+function makeEnemies(wave) {
+  const rows = Math.min(3 + wave, 5);
+  const cols = 6;
+  const enemies = [];
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      enemies.push({
+        x: 30 + col * 40,
+        y: 52 + row * 30,
+        alive: true,
+      });
+    }
+  }
+  return enemies;
+}
 
 export function SpaceInvadersGame() {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
+  const shipSheetRef = useRef(null);
+  const gameRef = useRef(null);
+  const [difficulty, setDifficulty] = useState("medium");
   const [uiState, setUiState] = useState({
     gameState: "menu",
     score: 0,
     lives: 3,
-    difficulty: "medium",
-    wave: 1
+    wave: 1,
   });
 
-  // Game elements refs
-  const gameRef = useRef({
-    playerX: 150,
-    bullets: [],
-    enemies: [],
-    enemyBullets: [],
-    enemyDirection: 1,
-    enemySpeed: 0.2,
-    lastShot: 0,
-    lastEnemyShot: 0,
-    gameWidth: 300,
-    gameHeight: 400,
-    wavePattern: 1,
-    enemyTypes: ["👾", "👽", "🤖", "👹", "🦠"],
-    enemyColors: ["#00FF00", "#FF00FF", "#FFFF00", "#FF0000", "#00FFFF"]
-  });
-
-  // Touch controls ref
-  const touchRef = useRef({
-    touchStartX: 0,
-    touchEndX: 0,
-    touchStartTime: 0
-  });
-
-  // Enemy patterns
-  const enemyPatterns = [
-    // Pattern 1: Classic grid (👾)
-    (rows, cols) => {
-      const enemies = [];
-      const size = 20;
-      const padding = 10;
-      const offsetTop = 40;
-      const offsetLeft = 20;
-      
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          enemies.push({
-            x: c * (size + padding) + offsetLeft,
-            y: r * (size + padding) + offsetTop,
-            width: size,
-            height: size,
-            status: 1,
-            type: 0 // 👾
-          });
-        }
-      }
-      return enemies;
-    },
-    // Pattern 2: Diamond formation (👽)
-    (rows, cols) => {
-      const enemies = [];
-      const size = 20;
-      const padding = 15;
-      const offsetTop = 40;
-      const offsetLeft = 50;
-      
-      const center = Math.floor(cols / 2);
-      for (let r = 0; r < rows; r++) {
-        const rowWidth = r < center ? r + 1 : rows - r;
-        const startCol = center - Math.floor(rowWidth / 2);
-        
-        for (let c = 0; c < rowWidth; c++) {
-          enemies.push({
-            x: (startCol + c) * (size + padding) + offsetLeft,
-            y: r * (size + padding) + offsetTop,
-            width: size,
-            height: size,
-            status: 1,
-            type: 1 // 👽
-          });
-        }
-      }
-      return enemies;
-    },
-    // Pattern 3: Zigzag (🤖)
-    (rows, cols) => {
-      const enemies = [];
-      const size = 20;
-      const padding = 15;
-      const offsetTop = 40;
-      const offsetLeft = 20;
-      
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if ((r % 2 === 0 && c % 2 === 0) || (r % 2 === 1 && c % 2 === 1)) {
-            enemies.push({
-              x: c * (size + padding) + offsetLeft,
-              y: r * (size + padding) + offsetTop,
-              width: size,
-              height: size,
-              status: 1,
-              type: 2 // 🤖
-            });
-          }
-        }
-      }
-      return enemies;
-    },
-    // Pattern 4: Vertical lines (👹)
-    (rows, cols) => {
-      const enemies = [];
-      const size = 20;
-      const padding = 20;
-      const offsetTop = 40;
-      const offsetLeft = 30;
-      
-      for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows; r++) {
-          if (c % 2 === 0 || r % 3 === 0) {
-            enemies.push({
-              x: c * (size + padding) + offsetLeft,
-              y: r * (size + padding) + offsetTop,
-              width: size,
-              height: size,
-              status: 1,
-              type: 3 // 👹
-            });
-          }
-        }
-      }
-      return enemies;
-    },
-    // Pattern 5: Spiral (🦠)
-    (rows, cols) => {
-      const enemies = [];
-      const size = 20;
-      const padding = 15;
-      const offsetTop = 40;
-      const offsetLeft = 50;
-      
-      let r = 0, c = 0;
-      let dr = 0, dc = 1;
-      let visited = new Set();
-      
-      for (let i = 0; i < rows * cols; i++) {
-        if (!visited.has(`${r},${c}`) && Math.random() > 0.3) {
-          enemies.push({
-            x: c * (size + padding) + offsetLeft,
-            y: r * (size + padding) + offsetTop,
-            width: size,
-            height: size,
-            status: 1,
-            type: 4 // 🦠
-          });
-          visited.add(`${r},${c}`);
-        }
-        
-        if (c + dc >= cols || c + dc < 0 || r + dr >= rows || r + dr < 0 || visited.has(`${r + dr},${c + dc}`)) {
-          [dr, dc] = [dc, -dr]; // Change direction
-        }
-        
-        r += dr;
-        c += dc;
-      }
-      return enemies;
-    }
-  ];
-
-  // Initialize enemies based on current wave pattern
-  const initEnemies = () => {
-    const rows = 4 + Math.floor(uiState.wave / 3);
-    const cols = 6 + Math.floor(uiState.wave / 2);
-    const patternIndex = (uiState.wave - 1) % 5;
-    
-    const newEnemies = enemyPatterns[patternIndex](rows, cols);
-    gameRef.current.enemies = newEnemies.map(enemy => ({
-      ...enemy,
-      width: enemy.width || 20,
-      height: enemy.height || 20,
-      status: 1,
-      type: enemy.type || 0
-    }));
-    
-    gameRef.current.wavePattern = patternIndex + 1;
-  };
-
-  // Update difficulty
   useEffect(() => {
-    const speed = 
-      uiState.difficulty === "easy" ? 0.15 :
-      uiState.difficulty === "medium" ? 0.2 :
-      0.25;
-    gameRef.current.enemySpeed = speed;
-  }, [uiState.difficulty]);
+    const image = new Image();
+    image.src = "/images/gba/ships.png";
+    shipSheetRef.current = image;
+  }, []);
 
-  const startGame = () => {
+  const stopAnimation = () => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    animationRef.current = null;
+  };
+
+  const syncUi = (gameState, game) => {
     setUiState({
-      gameState: "playing",
-      score: 0,
-      lives: 3,
-      difficulty: uiState.difficulty,
-      wave: 1
-    });
-    
-    initEnemies();
-    gameRef.current = {
-      ...gameRef.current,
-      playerX: 150,
-      bullets: [],
-      enemyBullets: [],
-      enemyDirection: 1,
-      lastShot: 0,
-      lastEnemyShot: 0,
-      enemySpeed: uiState.difficulty === "easy" ? 0.15 : 
-                 uiState.difficulty === "medium" ? 0.2 : 0.25
-    };
-    
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-    animate();
-  };
-
-  const drawPlayer = (ctx, playerX) => {
-    ctx.fillRect(
-      playerX - 12,
-      gameRef.current.gameHeight - 25,
-      24,
-      10
-    );
-    ctx.font = "16px Arial";
-    ctx.fillText("🚀", playerX - 8, gameRef.current.gameHeight - 15);
-  };
-
-  const drawBullets = (ctx) => {
-    ctx.font = "12px Arial";
-    gameRef.current.bullets.forEach(bullet => {
-      ctx.fillText("🔺", bullet.x - 6, bullet.y);
+      gameState,
+      score: game.score,
+      lives: game.lives,
+      wave: game.wave,
     });
   };
 
-  const drawEnemyBullets = (ctx) => {
-    ctx.font = "12px Arial";
-    gameRef.current.enemyBullets.forEach(bullet => {
-      ctx.fillText("🔻", bullet.x - 6, bullet.y);
-    });
-  };
-
-  const drawEnemies = (ctx) => {
-    ctx.font = "16px Arial";
-    gameRef.current.enemies.forEach(enemy => {
-      if (enemy.status === 1) {
-        ctx.fillStyle = gameRef.current.enemyColors[enemy.type];
-        ctx.fillText(
-          gameRef.current.enemyTypes[enemy.type],
-          enemy.x,
-          enemy.y + 15
-        );
-      }
-    });
-  };
-
-  const fireEnemyBullet = () => {
-    const now = Date.now();
-    if (now - gameRef.current.lastEnemyShot < 2500) return;
-
-    const activeEnemies = gameRef.current.enemies.filter(enemy => enemy.status === 1);
-    if (activeEnemies.length === 0) return;
-
-    const shooter = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
-    gameRef.current.enemyBullets.push({
-      x: shooter.x + shooter.width/2 - 6,
-      y: shooter.y + shooter.height
-    });
-    gameRef.current.lastEnemyShot = now;
-  };
-
-  const calculateEnemySpeed = () => {
-    const activeEnemies = gameRef.current.enemies.filter(e => e.status === 1).length;
-    const totalEnemies = gameRef.current.enemies.length;
-    const percentRemaining = activeEnemies / totalEnemies;
-    
-    const baseSpeed = gameRef.current.enemySpeed;
-    const waveMultiplier = 1 + (uiState.wave - 1) * 0.1;
-    const maxSpeed = baseSpeed * 2 * waveMultiplier;
-    
-    return baseSpeed * waveMultiplier + (maxSpeed - baseSpeed * waveMultiplier) * (1 - percentRemaining);
-  };
-
-  const nextWave = () => {
-    if (uiState.wave >= 5) {
-      setUiState(prev => ({
-        ...prev,
-        gameState: "victory",
-        score: prev.score + 500 // Big bonus for completing all waves
-      }));
+  const drawSprite = (ctx, sx, sy, dx, dy, scale = 1.8) => {
+    const image = shipSheetRef.current;
+    if (image?.complete) {
+      ctx.drawImage(image, sx, sy, 18, 18, dx, dy, 18 * scale, 18 * scale);
       return;
     }
-
-    setUiState(prev => ({
-      ...prev,
-      wave: prev.wave + 1,
-      score: prev.score + 100
-    }));
-    initEnemies();
-    gameRef.current.bullets = [];
-    gameRef.current.enemyBullets = [];
+    ctx.fillStyle = palette.ink;
+    ctx.fillRect(dx, dy, 28, 18);
   };
 
-  const animate = () => {
-    if (uiState.gameState !== "playing") return;
-    
+  const draw = (ctx, game) => {
+    ctx.fillStyle = palette.screen;
+    ctx.fillRect(0, 0, 300, 400);
+
+    ctx.fillStyle = "rgba(23, 25, 35, 0.25)";
+    for (let y = 0; y < 400; y += 18) ctx.fillRect(0, y, 300, 1);
+    for (let x = 0; x < 300; x += 24) ctx.fillRect(x, 0, 1, 400);
+
+    ctx.fillStyle = palette.ink;
+    ctx.font = "14px monospace";
+    ctx.fillText(`S ${game.score}`, 10, 22);
+    ctx.fillText(`L ${game.lives}`, 128, 22);
+    ctx.fillText(`W ${game.wave}/5`, 224, 22);
+
+    drawSprite(ctx, 28, 42, game.playerX - 16, 354, 1.9);
+
+    ctx.fillStyle = palette.accent;
+    game.bullets.forEach((bullet) => ctx.fillRect(bullet.x - 2, bullet.y, 4, 12));
+    ctx.fillStyle = palette.primary;
+    game.enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x - 2, bullet.y, 4, 10));
+
+    game.enemies.forEach((enemy, index) => {
+      if (!enemy.alive) return;
+      const sx = [138, 248, 358, 468][index % 4];
+      drawSprite(ctx, sx, 42, enemy.x - 12, enemy.y - 8, 1.45);
+    });
+  };
+
+  const nextWave = (game) => {
+    if (game.wave >= 5) {
+      game.status = "victory";
+      game.score += 250;
+      syncUi("victory", game);
+      return false;
+    }
+    game.wave += 1;
+    game.direction = 1;
+    game.enemyStepDown = 0;
+    game.enemies = makeEnemies(game.wave);
+    game.bullets = [];
+    game.enemyBullets = [];
+    syncUi("playing", game);
+    return true;
+  };
+
+  const step = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const game = gameRef.current;
+    if (!canvas || !game || game.status !== "playing") return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = gameRef.current.gameWidth;
-    const height = gameRef.current.gameHeight;
-    const game = gameRef.current;
+    const speed = difficultySpeed[difficulty] + game.wave * 0.12;
+    let changeDirection = false;
 
-    canvas.width = width;
-    canvas.height = height;
-    ctx.clearRect(0, 0, width, height);
-    
-    // Draw UI
-    ctx.fillStyle = "white";
-    ctx.font = "14px Arial";
-    
-    // Draw game elements
-    drawPlayer(ctx, game.playerX);
-    drawBullets(ctx);
-    drawEnemyBullets(ctx);
-    drawEnemies(ctx);
-
-    // Move bullets
-    game.bullets = game.bullets.filter(bullet => {
-      bullet.y -= 2;
-      return bullet.y > 0;
+    game.enemies.forEach((enemy) => {
+      if (!enemy.alive) return;
+      enemy.x += speed * game.direction;
+      if (enemy.x < 20 || enemy.x > 280) changeDirection = true;
     });
 
-    game.enemyBullets = game.enemyBullets.filter(bullet => {
-      bullet.y += 1.5;
-      return bullet.y < height;
+    if (changeDirection) {
+      game.direction *= -1;
+      game.enemies.forEach((enemy) => {
+        enemy.y += 12;
+        if (enemy.alive && enemy.y > 320) {
+          game.status = "gameover";
+          syncUi("gameover", game);
+        }
+      });
+    }
+
+    game.bullets = game.bullets
+      .map((bullet) => ({ ...bullet, y: bullet.y - 4.8 }))
+      .filter((bullet) => bullet.y > 28);
+
+    game.enemyBullets = game.enemyBullets
+      .map((bullet) => ({ ...bullet, y: bullet.y + 2.4 }))
+      .filter((bullet) => bullet.y < 400);
+
+    game.bullets.forEach((bullet) => {
+      game.enemies.forEach((enemy) => {
+        if (!enemy.alive) return;
+        const hit =
+          bullet.x > enemy.x - 16 &&
+          bullet.x < enemy.x + 16 &&
+          bullet.y > enemy.y - 10 &&
+          bullet.y < enemy.y + 18;
+        if (!hit) return;
+        enemy.alive = false;
+        bullet.y = -99;
+        game.score += 10;
+        syncUi("playing", game);
+      });
     });
 
-    // Enemy bullet collision
-    game.enemyBullets.forEach((bullet, index) => {
-      if (bullet.y >= height - 25 && 
-          bullet.x >= game.playerX - 12 && 
-          bullet.x <= game.playerX + 12) {
-        game.enemyBullets.splice(index, 1);
-        setUiState(prev => {
-          const newLives = prev.lives - 1;
-          if (newLives <= 0) {
-            return { ...prev, gameState: "gameover", lives: 0 };
-          }
-          return { ...prev, lives: newLives };
-        });
+    if (Math.random() < 0.018 + game.wave * 0.002) {
+      const activeEnemies = game.enemies.filter((enemy) => enemy.alive);
+      const shooter = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+      if (shooter) game.enemyBullets.push({ x: shooter.x, y: shooter.y + 18 });
+    }
+
+    game.enemyBullets.forEach((bullet) => {
+      const hit =
+        bullet.x > game.playerX - 18 &&
+        bullet.x < game.playerX + 18 &&
+        bullet.y > 350 &&
+        bullet.y < 388;
+      if (!hit) return;
+      bullet.y = 999;
+      game.lives -= 1;
+      if (game.lives <= 0) {
+        game.status = "gameover";
+        syncUi("gameover", game);
+      } else {
+        syncUi("playing", game);
       }
     });
 
-    // Move enemies
-    const currentEnemySpeed = calculateEnemySpeed();
-    let shouldChangeDirection = false;
-    let enemyReachedBottom = false;
-    
-    game.enemies.forEach(enemy => {
-      if (enemy.status === 1) {
-        switch (game.wavePattern) {
-          case 1: // Classic left-right
-            enemy.x += currentEnemySpeed * game.enemyDirection;
-            break;
-          case 2: // Diamond - diagonal
-            enemy.x += currentEnemySpeed * game.enemyDirection * 0.7;
-            enemy.y += currentEnemySpeed * 0.7;
-            break;
-          case 3: // Zigzag
-            enemy.x += currentEnemySpeed * game.enemyDirection;
-            enemy.y += Math.sin(enemy.x * 0.05) * 0.5;
-            break;
-          case 4: // Vertical lines
-            enemy.y += currentEnemySpeed * 0.8;
-            enemy.x += Math.sin(enemy.y * 0.05) * 1.5;
-            break;
-          case 5: // Spiral
-            const centerX = width / 2;
-            const centerY = 100;
-            const angle = Math.atan2(enemy.y - centerY, enemy.x - centerX);
-            const newAngle = angle + 0.02;
-            const radius = Math.sqrt(
-              Math.pow(enemy.x - centerX, 2) + 
-              Math.pow(enemy.y - centerY, 2)
-            );
-            enemy.x = centerX + radius * Math.cos(newAngle);
-            enemy.y = centerY + radius * Math.sin(newAngle);
-            break;
-        }
-
-        if (enemy.x <= 0 || enemy.x + enemy.width >= width) {
-          shouldChangeDirection = true;
-        }
-
-        if (enemy.y + enemy.height >= height - 30) {
-          enemyReachedBottom = true;
-        }
-      }
-    });
-
-    if (enemyReachedBottom) {
-      setUiState(prev => ({ ...prev, gameState: "gameover" }));
+    if (game.status !== "playing") {
+      stopAnimation();
+      draw(ctx, game);
       return;
     }
 
-    if (shouldChangeDirection && [1, 2, 3].includes(game.wavePattern)) {
-      game.enemyDirection *= -1;
-      game.enemies.forEach(enemy => {
-        if (enemy.status === 1) {
-          enemy.y += 5;
-          if (enemy.y + enemy.height >= height - 30) {
-            setUiState(prev => ({ ...prev, gameState: "gameover" }));
-            return;
-          }
-        }
-      });
+    if (game.enemies.every((enemy) => !enemy.alive) && !nextWave(game)) {
+      stopAnimation();
+      draw(ctx, game);
+      return;
     }
 
-    // Bullet-enemy collision
-    game.bullets.forEach((bullet, bulletIndex) => {
-      game.enemies.forEach((enemy, enemyIndex) => {
-        if (enemy.status === 1 &&
-            bullet.x > enemy.x - 10 &&
-            bullet.x < enemy.x + enemy.width + 10 &&
-            bullet.y > enemy.y - 10 &&
-            bullet.y < enemy.y + enemy.height + 10) {
-          enemy.status = 0;
-          game.bullets.splice(bulletIndex, 1);
-          setUiState(prev => ({ ...prev, score: prev.score + 10 }));
-        }
-      });
-    });
-
-    // Enemy shooting
-    if (Math.random() < 0.003) {
-      fireEnemyBullet();
-    }
-
-    // Check wave completion
-    if (game.enemies.every(enemy => enemy.status === 0)) {
-      nextWave();
-    }
-
-    animationRef.current = requestAnimationFrame(animate);
+    draw(ctx, game);
+    animationRef.current = requestAnimationFrame(step);
   };
 
-  // Keyboard controls
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (uiState.gameState !== "playing") return;
-      
-      const now = Date.now();
-      const game = gameRef.current;
+  const startGame = () => {
+    const game = {
+      status: "playing",
+      playerX: 150,
+      bullets: [],
+      enemyBullets: [],
+      enemies: makeEnemies(1),
+      direction: 1,
+      lastShot: 0,
+      score: 0,
+      lives: 3,
+      wave: 1,
+    };
+    gameRef.current = game;
+    syncUi("playing", game);
+    stopAnimation();
+    animationRef.current = requestAnimationFrame(step);
+  };
 
-      if (e.key === "ArrowLeft") {
-        game.playerX = Math.max(15, game.playerX - 4);
-      } else if (e.key === "ArrowRight") {
-        game.playerX = Math.min(285, game.playerX + 4);
-      } else if (e.key === " " && now - game.lastShot > 600) {
-        game.bullets.push({
-          x: game.playerX - 6,
-          y: game.gameHeight - 35
-        });
-        game.lastShot = now;
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const game = gameRef.current;
+      if (!game || game.status !== "playing") return;
+      if (event.key === "ArrowLeft") game.playerX = Math.max(18, game.playerX - 12);
+      if (event.key === "ArrowRight") game.playerX = Math.min(282, game.playerX + 12);
+      if (event.key === " ") {
+        event.preventDefault();
+        const now = performance.now();
+        if (now - game.lastShot > 320) {
+          game.bullets.push({ x: game.playerX, y: 344 });
+          game.lastShot = now;
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [uiState.gameState]);
-
-  // Mouse controls
-  const handleMouseMove = (e) => {
-    if (uiState.gameState !== "playing") return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    gameRef.current.playerX = Math.max(15, Math.min(285, x));
-  };
-
-  const handleClick = () => {
-    if (uiState.gameState !== "playing") return;
-    
-    const now = Date.now();
-    const game = gameRef.current;
-    
-    if (now - game.lastShot > 600) {
-      game.bullets.push({
-        x: game.playerX - 6,
-        y: game.gameHeight - 35
-      });
-      game.lastShot = now;
-    }
-  };
-
-  // Touch controls
-  const handleTouchStart = (e) => {
-    if (uiState.gameState !== "playing") return;
-    const touch = e.touches[0];
-    touchRef.current.touchStartX = touch.clientX;
-    touchRef.current.touchStartTime = Date.now();
-  };
-
-  const handleTouchMove = (e) => {
-    if (uiState.gameState !== "playing") return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    gameRef.current.playerX = Math.max(15, Math.min(285, x));
-  };
-
-  const handleTouchEnd = (e) => {
-    if (uiState.gameState !== "playing") return;
-    
-    const now = Date.now();
-    const game = gameRef.current;
-    const touch = e.changedTouches[0];
-    
-    // Check if it's a tap (not a swipe)
-    if (now - touchRef.current.touchStartTime < 200 && 
-        Math.abs(touch.clientX - touchRef.current.touchStartX) < 10) {
-      if (now - game.lastShot > 600) {
-        game.bullets.push({
-          x: game.playerX - 6,
-          y: game.gameHeight - 35
-        });
-        game.lastShot = now;
-      }
-    }
-  };
-
-  // Add fire button for mobile
-  const handleFireButton = () => {
-    if (uiState.gameState !== "playing") return;
-    
-    const now = Date.now();
-    const game = gameRef.current;
-    
-    if (now - game.lastShot > 600) {
-      game.bullets.push({
-        x: game.playerX - 6,
-        y: game.gameHeight - 35
-      });
-      game.lastShot = now;
-    }
-  };
-
-  useEffect(() => {
-    if (uiState.gameState === "playing") {
-      animate();
-    }
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      window.removeEventListener("keydown", handleKeyDown);
+      stopAnimation();
     };
-  }, [uiState.gameState, uiState.wave]);
+  }, []);
+
+  const movePlayer = (clientX) => {
+    const canvas = canvasRef.current;
+    const game = gameRef.current;
+    if (!canvas || !game || game.status !== "playing") return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    game.playerX = Math.max(18, Math.min(282, (clientX - rect.left) * scaleX));
+  };
+
+  const fire = () => {
+    const game = gameRef.current;
+    if (!game || game.status !== "playing") return;
+    const now = performance.now();
+    if (now - game.lastShot <= 320) return;
+    game.bullets.push({ x: game.playerX, y: 344 });
+    game.lastShot = now;
+  };
 
   return (
     <div className="flex flex-col items-center gap-4">
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-4 rounded-lg">
-          <p className="text-center">Complete 5 waves to win!</p>
-          <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                checked={uiState.difficulty === "easy"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "easy" }))} 
+        <div className="pixel-screen flex w-full flex-col gap-4 p-5">
+          <p className="font-bold">Clear five waves to win.</p>
+          {Object.keys(difficultySpeed).map((level) => (
+            <label key={level} className="flex items-center gap-3 font-bold capitalize">
+              <input
+                type="radio"
+                name="space-difficulty"
+                checked={difficulty === level}
+                onChange={() => setDifficulty(level)}
               />
-              Easy
+              {level}
             </label>
-            <label className="flex items-center gap-2">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                checked={uiState.difficulty === "medium"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "medium" }))} 
-              />
-              Medium
-            </label>
-            <label className="flex items-center gap-2">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                checked={uiState.difficulty === "hard"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "hard" }))} 
-              />
-              Hard
-            </label>
-          </div>
-          <button 
-            onClick={startGame}
-            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
-          >
-            Start Game 🚀
+          ))}
+          <button onClick={startGame} className="pixel-button px-4 py-2">
+            Start Game
           </button>
         </div>
       )}
 
-      {uiState.gameState === "gameover" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
-          <h1 className="text-2xl font-bold">Game Over 💀</h1>
-          <p className="text-xl">Score: {uiState.score}</p>
-          <p className="text-xl">Waves: {uiState.wave}</p>
-          <button 
-            onClick={startGame}
-            className="px-4 py-2 bg-accent rounded hover:bg-accent/50"
-          >
-            Play Again 🔄
-          </button>
-        </div>
-      )}
-
-      {uiState.gameState === "victory" && (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-lg">
-          <h1 className="text-2xl font-bold">Victory! 🎉</h1>
-          <p className="text-xl">💯 Final Score: {uiState.score}</p>
-          <p className="text-xl">You completed all 5 waves!</p>
-          <button 
-            onClick={startGame}
-            className="px-4 py-2 bg-accent rounded hover:bg-accent/50"
-          >
-            Play Again 🔄
+      {(uiState.gameState === "gameover" || uiState.gameState === "victory") && (
+        <div className="pixel-screen flex w-full flex-col items-center gap-4 p-5 text-center">
+          <h3 className="font-pixel text-2xl font-black uppercase">
+            {uiState.gameState === "victory" ? "Victory" : "Game Over"}
+          </h3>
+          <p className="font-bold">Score {uiState.score}</p>
+          <p className="font-bold">Wave {uiState.wave}/5</p>
+          <button onClick={startGame} className="pixel-button px-4 py-2">
+            Play Again
           </button>
         </div>
       )}
 
       {uiState.gameState === "playing" && (
         <>
-          <div className="flex justify-between w-full px-20">
-            <p>Score: {uiState.score}</p>
-            <p>❤️: {uiState.lives}</p>
-            <p>Wave: {uiState.wave}/5</p>
+          <div className="flex w-full max-w-[300px] justify-between font-pixel text-xs uppercase">
+            <p>Score {uiState.score}</p>
+            <p>Lives {uiState.lives}</p>
+            <p>Wave {uiState.wave}/5</p>
           </div>
-          
           <canvas
             ref={canvasRef}
-            className="border border-white rounded-md"
-            onMouseMove={handleMouseMove}
-            onClick={handleClick}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            width={300}
+            height={400}
+            className="gba-canvas"
+            onMouseMove={(event) => movePlayer(event.clientX)}
+            onClick={fire}
+            onTouchMove={(event) => {
+              event.preventDefault();
+              movePlayer(event.touches[0].clientX);
+            }}
+            onTouchEnd={fire}
           />
-          
-          {/* Mobile fire button */}
-          <button 
-            onClick={handleFireButton}
-            className="md:hidden px-6 py-3 bg-accent rounded-full text-xl"
-          >
-            FIRE 🔺
+          <button onClick={fire} className="pixel-button px-6 py-3 md:hidden">
+            Fire
           </button>
-          
-          {/* Mobile controls instructions */}
-          <div className="md:hidden text-sm text-gray-400">
-            Swipe to move | Tap to shoot
-          </div>
         </>
       )}
     </div>

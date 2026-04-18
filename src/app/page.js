@@ -7,77 +7,44 @@ import ContactSection from "../components/ContactSection";
 import ParallaxSection from "../components/ParallaxSection";
 import DotGrid from "@/components/DotGrid";
 import HRSection from "@/components/HRSection";
-import Image from "next/image";
+import GbaParallaxBackdrop from "@/components/GbaParallaxBackdrop";
+
+const sections = [
+  AboutSection,
+  HRSection,
+  ExperienceSection,
+  ProjectsSection,
+  SkillsSection,
+  ContactSection,
+];
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-x-hidden break-words">
-      {/* BACKGROUND IMAGE (lowest layer) */}
-      <div className="absolute top-[64px] w-full h-[calc(100vh-64px)] z-0">
-        <div className="w-full h-full relative">
-          <Image
-            src="/images/bg2.png"
-            alt="bg"
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-background text-text-primary">
+      <GbaParallaxBackdrop />
 
-      {/* DOT GRID (above image) */}
-      <div className="absolute inset-0 w-full h-full z-10 pointer-events-none">
+      <div className="pointer-events-none fixed inset-0 z-10 opacity-35">
         <DotGrid
-          dotSize={1.8}
-          gap={15}
-          baseColor="#D4AF37"
-          activeColor="#D4AF37"
+          dotSize={2}
+          gap={18}
+          baseColor="#ffd166"
+          activeColor="#8bd450"
           proximity={120}
-          shockRadius={250}
-          shockStrength={5}
-          resistance={750}
-          returnDuration={1.5}
+          shockRadius={220}
+          shockStrength={4}
+          resistance={800}
+          returnDuration={1.4}
         />
       </div>
 
-      {/* DARK OVERLAY */}
-      <div className="absolute inset-0 bg-primary/10 z-20"></div>
-
-      {/* PAGE CONTENT */}
-      <div className="relative z-30 h-[100vh] overflow-auto">
-        {/* HERO – no parallax so it fills the screen */}
+      <div className="relative z-20">
         <HeroSection />
-
-        {/* About – subtle parallax */}
-        <ParallaxSection speed={0.15}>
-          <AboutSection />
-        </ParallaxSection>
-
-        {/* HR section – subtle parallax */}
-        <ParallaxSection speed={0.15}>
-          <HRSection />
-        </ParallaxSection>
-
-        {/* Experience – slightly slower parallax */}
-        <ParallaxSection speed={0.1}>
-          <ExperienceSection />
-        </ParallaxSection>
-
-        {/* Projects – a little faster for depth */}
-        <ParallaxSection speed={0.25}>
-          <ProjectsSection />
-        </ParallaxSection>
-
-        {/* Skills – mild parallax */}
-        <ParallaxSection speed={0.12}>
-          <SkillsSection />
-        </ParallaxSection>
-
-        {/* Contact – final call to action */}
-        <ParallaxSection speed={0.2}>
-          <ContactSection />
-        </ParallaxSection>
+        {sections.map((Section, index) => (
+          <ParallaxSection key={Section.name} className={index === 0 ? "" : ""}>
+            <Section />
+          </ParallaxSection>
+        ))}
       </div>
-    </div>
+    </main>
   );
 }

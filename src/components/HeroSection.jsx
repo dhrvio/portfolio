@@ -1,53 +1,66 @@
-'use client';
-import { resumeData } from "../lib/resumeData";
+"use client";
+
 import { motion } from "framer-motion";
+import { Gamepad2 } from "lucide-react";
+import { resumeData } from "../lib/resumeData";
 import SplitText from "./SplitText";
 
 export default function HeroSection() {
   return (
-    <div
+    <section
       id="hero"
-      className="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden"
+      className="relative flex min-h-[88vh] items-center justify-center px-5 pb-16 pt-28 text-center md:pt-32"
     >
-      {/* Glitchy Name */}
-      <motion.h4
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        className="text-5xl md:text-9xl uppercase neon-flicker mb-4 text-accent/15"
-        style={{ animation: "neon-flicker 3s infinite alternate" }}
-      >
-        {resumeData.personal.name}
-      </motion.h4>
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="mb-6 inline-flex items-center gap-3 rounded-gba border-2 border-ink bg-cartridge px-4 py-2 font-pixel text-xs uppercase tracking-normal text-ink shadow-raised"
+        >
+          <Gamepad2 size={16} />
+          Player 1 Ready
+        </motion.div>
 
-      {/* Title */}
-      <SplitText
-        text={resumeData.personal.title}
-        className="md:text-2xl font-semibold text-center text-text-primary"
-        delay={100}
-        duration={0.6}
-        ease="power3.out"
-        splitType="chars"
-        from={{ opacity: 0, y: 40 }}
-        to={{ opacity: 1, y: 0 }}
-        threshold={0.1}
-        rootMargin="-100px"
-        textAlign="center"
-      />
+        <motion.h1
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="font-pixel text-[clamp(2.2rem,8vw,6.8rem)] font-black uppercase leading-[1.05] text-highlight drop-shadow-[4px_4px_0_var(--color-ink)]"
+        >
+          {resumeData.personal.name}
+        </motion.h1>
 
-      {/* Neon Underline */}
-      <div className="h-0.5 md:w-2xl bg-accent mb-8 animate-pulse"></div>
+        <div className="mt-6 max-w-3xl text-balance text-lg font-semibold text-text-primary md:text-2xl">
+          <SplitText
+            text={resumeData.personal.title}
+            className="text-center"
+            delay={45}
+            duration={0.45}
+            ease="power3.out"
+            splitType="words"
+            from={{ opacity: 0, y: 20 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.1}
+            rootMargin="-80px"
+            textAlign="center"
+          />
+        </div>
 
-      {/* CTA Button */}
-      <motion.a
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-        href="#about"
-        className="inline-block px-8 py-4 border-2 border-accent text-accent font-semibold uppercase rounded-full hover:bg-accent hover:text-primary transition-all duration-300 ease-out shadow-neon"
-      >
-        Learn More
-      </motion.a>
-    </div>
+        <div className="mt-8 h-2 w-full max-w-xl border-2 border-ink bg-screen shadow-raised">
+          <div className="h-full w-3/4 bg-link-hover" />
+        </div>
+
+        <motion.a
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.65, duration: 0.3 }}
+          href="#about"
+          className="pixel-button mt-10 px-8 py-3 text-sm"
+        >
+          Start
+        </motion.a>
+      </div>
+    </section>
   );
 }

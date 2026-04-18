@@ -1,403 +1,252 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
+
+const palette = {
+  ink: "#171923",
+  screen: "#a7c957",
+  screenDark: "#2f4f2f",
+  accent: "#ff6b6b",
+  highlight: "#ffd166",
+  primary: "#4f4a7f",
+  text: "#f8f4df",
+};
+
+const difficultyConfig = {
+  easy: { paddleWidth: 120, speed: 2.2 },
+  medium: { paddleWidth: 86, speed: 2.7 },
+  hard: { paddleWidth: 62, speed: 3.2 },
+};
+
+function buildBricks() {
+  const bricks = [];
+  for (let row = 0; row < 5; row += 1) {
+    for (let col = 0; col < 3; col += 1) {
+      bricks.push({
+        x: 48 + col * 70,
+        y: 48 + row * 26,
+        width: 58,
+        height: 18,
+        alive: true,
+      });
+    }
+  }
+  return bricks;
+}
 
 export function BrickBreakerGame() {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const containerRef = useRef(null);
+  const gameRef = useRef(null);
+  const [difficulty, setDifficulty] = useState("medium");
   const [uiState, setUiState] = useState({
     gameState: "menu",
-    score: 0, // Represents time in seconds
+    score: 0,
     lives: 3,
-    difficulty: "medium"
   });
 
-  // Game elements refs
-  const gameRef = useRef({
-    mouseX: 150,
-    ballY: 300,
-    ballX: 150,
-    dy: -1.5,
-    dx: 0.5,
-    paddleWidth: 80,
-    bricks: [],
-    brickConfig: {
-      rowCount: 5,
-      colCount: 3,
-      width: 60,
-      height: 20,
-      padding: 10,
-      offsetTop: 30,
-      offsetLeft: 60
-    },
-    lastTime: 0,
-    touchStartX: 0,
-    touchCurrentX: 0
-  });
+  const draw = (ctx, game) => {
+    ctx.fillStyle = palette.screen;
+    ctx.fillRect(0, 0, 300, 400);
 
-  // Timer for score
-  useEffect(() => {
-    let timer;
-    if (uiState.gameState === "playing") {
-      timer = setInterval(() => {
-        setUiState(prev => ({ ...prev, score: prev.score + 1 }));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [uiState.gameState]);
+    ctx.fillStyle = "rgba(23, 25, 35, 0.16)";
+    for (let y = 0; y < 400; y += 16) ctx.fillRect(0, y, 300, 1);
+    for (let x = 0; x < 300; x += 16) ctx.fillRect(x, 0, 1, 400);
 
-  // Initialize game based on difficulty
-  useEffect(() => {
-    gameRef.current.paddleWidth = 
-      uiState.difficulty === "easy" ? 120 :
-      uiState.difficulty === "medium" ? 80 : 60;
-    
-    // Initialize bricks
-    const bricks = [];
-    for (let c = 0; c < gameRef.current.brickConfig.colCount; c++) {
-      bricks[c] = [];
-      for (let r = 0; r < gameRef.current.brickConfig.rowCount; r++) {
-        bricks[c][r] = { x: 0, y: 0, status: 1 };
-      }
-    }
-    gameRef.current.bricks = bricks;
-  }, [uiState.difficulty]);
+    ctx.fillStyle = palette.ink;
+    ctx.font = "14px monospace";
+    ctx.fillText(`Score ${game.score}`, 10, 22);
+    ctx.fillText(`Lives ${game.lives}`, 220, 22);
 
-  // Draw UI elements when score/lives change
-  useEffect(() => {
-    if (uiState.gameState !== "playing") return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const width = canvas.width;
-    
-    // Clear and redraw UI area
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, width, 30);
-    ctx.fillStyle = "white";
-    ctx.font = "16px Arial";
-    ctx.fillText(`Time: ${formatTime(uiState.score)}`, 10, 20);
-    ctx.fillText(`Lives: ${uiState.lives}`, width - 80, 20);
-  }, [uiState.score, uiState.lives, uiState.gameState]);
-
-  const startGame = () => {
-    setUiState({
-      gameState: "playing",
-      score: 0, // Reset timer
-      lives: 3,
-      difficulty: uiState.difficulty
+    game.bricks.forEach((brick, index) => {
+      if (!brick.alive) return;
+      ctx.fillStyle = [palette.primary, palette.highlight, palette.accent][index % 3];
+      ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+      ctx.strokeStyle = palette.ink;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
     });
-    
-    // Reset game state
-    gameRef.current = {
-      ...gameRef.current,
-      mouseX: 150,
-      ballY: 300,
-      ballX: 150,
-      dy: -1.5,
-      dx: 0.5,
-      paddleWidth: uiState.difficulty === "easy" ? 120 : 
-                 uiState.difficulty === "medium" ? 80 : 60,
-      lastTime: Date.now(),
-      touchStartX: 0,
-      touchCurrentX: 0
-    };
-    
-    // Reset bricks
-    for (let c = 0; c < gameRef.current.brickConfig.colCount; c++) {
-      for (let r = 0; r < gameRef.current.brickConfig.rowCount; r++) {
-        gameRef.current.bricks[c][r].status = 1;
-      }
-    }
-    
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-    animate();
+
+    ctx.fillStyle = palette.ink;
+    ctx.fillRect(game.paddleX - game.paddleWidth / 2, 374, game.paddleWidth, 10);
+    ctx.fillStyle = palette.highlight;
+    ctx.fillRect(game.paddleX - game.paddleWidth / 2 + 4, 376, game.paddleWidth - 8, 3);
+
+    ctx.fillStyle = palette.accent;
+    ctx.fillRect(game.ballX - 7, game.ballY - 7, 14, 14);
+    ctx.fillStyle = palette.highlight;
+    ctx.fillRect(game.ballX - 3, game.ballY - 3, 4, 4);
   };
 
-  const drawGameElements = (ctx, canvas) => {
-    const { ballX, ballY, bricks, brickConfig, paddleWidth, mouseX } = gameRef.current;
-    
-    // Draw ball
-    ctx.beginPath();
-    ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.closePath();
-    
-    // Draw paddle
-    ctx.beginPath();
-    ctx.rect(mouseX - paddleWidth/2, canvas.height - 15, paddleWidth, 10);
-    ctx.fillStyle = "white";
-    ctx.fill();
-    ctx.closePath();
-    
-    // Draw bricks
-    for (let c = 0; c < brickConfig.colCount; c++) {
-      for (let r = 0; r < brickConfig.rowCount; r++) {
-        if (bricks[c][r].status === 1) {
-          const brickX = c * (brickConfig.width + brickConfig.padding) + brickConfig.offsetLeft;
-          const brickY = r * (brickConfig.height + brickConfig.padding) + brickConfig.offsetTop;
-          bricks[c][r].x = brickX;
-          bricks[c][r].y = brickY;
-          ctx.beginPath();
-          ctx.rect(brickX, brickY, brickConfig.width, brickConfig.height);
-          ctx.fillStyle = "white";
-          ctx.fill();
-          ctx.closePath();
-        }
-      }
-    }
+  const stopAnimation = () => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    animationRef.current = null;
   };
 
-  const animate = () => {
-    if (uiState.gameState !== "playing") return;
-    
+  const syncUi = (gameState, game) => {
+    setUiState({
+      gameState,
+      score: game.score,
+      lives: game.lives,
+    });
+  };
+
+  const step = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const game = gameRef.current;
+    if (!canvas || !game || game.status !== "playing") return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.width = 300;
-    const height = canvas.height = 400;
-    const game = gameRef.current;
-
-    // Clear game area (preserve UI area)
-    ctx.clearRect(0, 30, width, height - 30);
-    
-    // Draw all game elements
-    drawGameElements(ctx, canvas);
-
-    // Update ball position
-    game.ballY += game.dy;
     game.ballX += game.dx;
+    game.ballY += game.dy;
 
-    // Brick collision
-    let bricksLeft = 0;
-    for (let c = 0; c < game.brickConfig.colCount; c++) {
-      for (let r = 0; r < game.brickConfig.rowCount; r++) {
-        const brick = game.bricks[c][r];
-        if (brick.status === 1) {
-          bricksLeft++;
-          if (
-            game.ballX > brick.x && game.ballX < brick.x + game.brickConfig.width &&
-            game.ballY > brick.y && game.ballY < brick.y + game.brickConfig.height
-          ) {
-            game.dy = -game.dy;
-            brick.status = 0;
-            
-            // Slightly increase speed after each hit
-            game.dy *= 1.02;
-            game.dx *= 1.02;
-          }
-        }
-      }
-    }
+    if (game.ballX <= 8 || game.ballX >= 292) game.dx *= -1;
+    if (game.ballY <= 36) game.dy = Math.abs(game.dy);
 
-    // Wall collision
-    if (game.ballX < 8 || game.ballX > width - 8) {
-      game.dx = -game.dx;
-    }
-    if (game.ballY < 8) {
-      game.dy = -game.dy;
-    }
-    // Paddle collision
-    else if (game.ballY > height - 23 && 
-             game.ballX > game.mouseX - game.paddleWidth/2 && 
-             game.ballX < game.mouseX + game.paddleWidth/2) {
+    if (
+      game.ballY >= 364 &&
+      game.ballY <= 382 &&
+      game.ballX >= game.paddleX - game.paddleWidth / 2 &&
+      game.ballX <= game.paddleX + game.paddleWidth / 2
+    ) {
+      const hit = (game.ballX - (game.paddleX - game.paddleWidth / 2)) / game.paddleWidth;
+      game.dx = (hit - 0.5) * 4.2;
       game.dy = -Math.abs(game.dy);
-      // Add angle based on where ball hits paddle
-      const hitPos = (game.ballX - (game.mouseX - game.paddleWidth/2)) / game.paddleWidth;
-      game.dx = (hitPos - 0.5) * 4;
-    }
-    // Bottom collision (lose life)
-    else if (game.ballY > height) {
-      setUiState(prev => {
-        const newLives = prev.lives - 1;
-        if (newLives <= 0) {
-          return { ...prev, gameState: "gameover", lives: 0 };
-        }
-        
-        // Reset ball
-        game.ballY = 300;
-        game.ballX = width / 2;
-        game.dy = -1.5;
-        game.dx = 0.5;
-        
-        return { ...prev, lives: newLives };
-      });
     }
 
-    // Win condition
-    if (bricksLeft === 0) {
-      setUiState(prev => ({ ...prev, gameState: "win" }));
+    game.bricks.forEach((brick) => {
+      if (!brick.alive) return;
+      const hit =
+        game.ballX > brick.x &&
+        game.ballX < brick.x + brick.width &&
+        game.ballY > brick.y &&
+        game.ballY < brick.y + brick.height;
+      if (!hit) return;
+      brick.alive = false;
+      game.score += 10;
+      game.dy *= -1;
+      syncUi("playing", game);
+    });
+
+    if (game.ballY > 410) {
+      game.lives -= 1;
+      if (game.lives <= 0) {
+        game.status = "gameover";
+        syncUi("gameover", game);
+        stopAnimation();
+        draw(ctx, game);
+        return;
+      }
+      game.ballX = 150;
+      game.ballY = 300;
+      game.dx = 1.1;
+      game.dy = -difficultyConfig[difficulty].speed;
+      syncUi("playing", game);
+    }
+
+    if (game.bricks.every((brick) => !brick.alive)) {
+      game.status = "win";
+      syncUi("win", game);
+      stopAnimation();
+      draw(ctx, game);
       return;
     }
 
-    animationRef.current = requestAnimationFrame(animate);
+    draw(ctx, game);
+    animationRef.current = requestAnimationFrame(step);
   };
 
-  useEffect(() => {
-    if (uiState.gameState === "playing") {
-      animate();
-    }
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+  const startGame = () => {
+    const config = difficultyConfig[difficulty];
+    const game = {
+      status: "playing",
+      paddleX: 150,
+      paddleWidth: config.paddleWidth,
+      ballX: 150,
+      ballY: 300,
+      dx: 1.1,
+      dy: -config.speed,
+      bricks: buildBricks(),
+      score: 0,
+      lives: 3,
     };
-  }, [uiState.gameState]);
-
-  const handleMouseMove = (e) => {
-    if (uiState.gameState === "playing") {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      gameRef.current.mouseX = (e.clientX - rect.left) * scaleX;
-    }
+    gameRef.current = game;
+    syncUi("playing", game);
+    stopAnimation();
+    animationRef.current = requestAnimationFrame(step);
   };
 
-  // Touch event handlers
-  const handleTouchStart = (e) => {
-    if (uiState.gameState !== "playing") return;
-    e.preventDefault();
-    const touch = e.touches[0];
+  useEffect(() => () => stopAnimation(), []);
+
+  const movePaddle = (clientX) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    
+    const game = gameRef.current;
+    if (!canvas || !game || game.status !== "playing") return;
+
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
-    gameRef.current.touchStartX = (touch.clientX - rect.left) * scaleX;
-    gameRef.current.touchCurrentX = gameRef.current.touchStartX;
+    game.paddleX = Math.max(
+      game.paddleWidth / 2,
+      Math.min(300 - game.paddleWidth / 2, (clientX - rect.left) * scaleX)
+    );
   };
 
-  const handleTouchMove = (e) => {
-    if (uiState.gameState !== "playing") return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    gameRef.current.touchCurrentX = (touch.clientX - rect.left) * scaleX;
-    gameRef.current.mouseX = gameRef.current.touchCurrentX;
-  };
-
-  const handleTouchEnd = (e) => {
-    e.preventDefault();
-  };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    // Add event listeners
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
-    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
-    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
-
-    return () => {
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("touchstart", handleTouchStart);
-      canvas.removeEventListener("touchmove", handleTouchMove);
-      canvas.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [uiState.gameState]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  const formatScore = (score) => score.toString().padStart(3, "0");
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4" ref={containerRef}>
+    <div className="flex flex-col items-center gap-4">
       {uiState.gameState === "menu" && (
-        <div className="flex flex-col items-center gap-4 p-6 rounded-lg max-w-md w-full">
-          <div className="flex flex-col gap-3 w-full  font-bold">
-            <h2 className="text-lg font-semibold">Difficulty:</h2>
-            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                className="w-4 h-4"
-                checked={uiState.difficulty === "easy"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "easy" }))} 
+        <div className="pixel-screen flex w-full flex-col gap-4 p-5">
+          <h3 className="font-pixel text-lg font-black uppercase">Difficulty</h3>
+          {Object.keys(difficultyConfig).map((level) => (
+            <label key={level} className="flex items-center gap-3 font-bold capitalize">
+              <input
+                type="radio"
+                name="brick-difficulty"
+                checked={difficulty === level}
+                onChange={() => setDifficulty(level)}
               />
-              Easy (Wide Paddle)
+              {level}
             </label>
-            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                className="w-4 h-4"
-                checked={uiState.difficulty === "medium"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "medium" }))} 
-              />
-              Medium (Normal Paddle)
-            </label>
-            <label className="flex items-center gap-3 p-2 rounded cursor-pointer">
-              <input 
-                type="radio" 
-                name="difficulty" 
-                className="w-4 h-4"
-                checked={uiState.difficulty === "hard"} 
-                onChange={() => setUiState(prev => ({ ...prev, difficulty: "hard" }))} 
-              />
-              Hard (Narrow Paddle)
-            </label>
-          </div>
-          <button 
-            onClick={startGame}
-            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
-          >
+          ))}
+          <button onClick={startGame} className="pixel-button px-4 py-2">
             Start Game
           </button>
         </div>
       )}
 
       {(uiState.gameState === "gameover" || uiState.gameState === "win") && (
-        <div className="flex flex-col items-center gap-4 p-6  rounded-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold">
-            {uiState.gameState === "win" ? "You Win!" : "Game Over"}
-          </h1>
-          <p className="text-xl">Time: {formatTime(uiState.score)}</p>
-          <p className="text-lg">Difficulty: {uiState.difficulty.charAt(0).toUpperCase() + uiState.difficulty.slice(1)}</p>
-          <button 
-            onClick={startGame}
-            className="px-4 py-2 bg-accent text-text-primary hover:bg-accent/50 rounded"
-          >
+        <div className="pixel-screen flex w-full flex-col items-center gap-4 p-5 text-center">
+          <h3 className="font-pixel text-2xl font-black uppercase">
+            {uiState.gameState === "win" ? "Cleared" : "Game Over"}
+          </h3>
+          <p className="font-bold">Score {formatScore(uiState.score)}</p>
+          <button onClick={startGame} className="pixel-button px-4 py-2">
             Play Again
           </button>
         </div>
       )}
 
       {uiState.gameState === "playing" && (
-        <>
-          <div className="flex justify-between w-full max-w-[300px]  px-4">
-            <p className="text-lg">⏱️ {formatTime(uiState.score)}</p>
-            <p className="text-lg">❤️ {uiState.lives}</p>
-          </div>
-          <canvas
-            ref={canvasRef}
-            className="border-2 border-primary rounded-lg bg-accent/50 touch-none"
-            width={300}
-            height={400}
-          />
-          <div className="text-sm  mt-2">
-            {window.innerWidth < 768 ? "Swipe to move paddle" : "Move mouse to control paddle"}
-          </div>
-        </>
+        <div className="flex w-full max-w-[300px] justify-between font-pixel text-xs uppercase">
+          <p>Score {formatScore(uiState.score)}</p>
+          <p>Lives {uiState.lives}</p>
+        </div>
       )}
+
+      <canvas
+        ref={canvasRef}
+        width={300}
+        height={400}
+        className={`gba-canvas ${uiState.gameState === "menu" ? "hidden" : ""}`}
+        onMouseMove={(event) => movePaddle(event.clientX)}
+        onTouchMove={(event) => {
+          event.preventDefault();
+          movePaddle(event.touches[0].clientX);
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,15 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 
+const palette = {
+  ink: "#171923",
+  screen: "#a7c957",
+  screenDark: "#2f4f2f",
+  highlight: "#ffd166",
+  accent: "#ff6b6b",
+  linkHover: "#8bd450",
+};
+
 export function SnakeGame() {
   const canvasRef = useRef(null);
   const [gameState, setGameState] = useState("ready"); // ready/playing/paused/gameover
@@ -52,44 +61,56 @@ export function SnakeGame() {
     cellSizeRef.current = canvas.width / gridSize;
 
     // Clear canvas
-    ctx.fillStyle = "black";
+    ctx.fillStyle = palette.screen;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(47, 79, 47, 0.2)";
+    for (let i = 0; i <= gridSize; i++) {
+      const line = i * cellSizeRef.current;
+      ctx.fillRect(line, 0, 1, canvas.height);
+      ctx.fillRect(0, line, canvas.width, 1);
+    }
 
     // Draw snake
     snakeRef.current.forEach((segment, index) => {
       const isHead = index === 0;
-      ctx.fillStyle = isHead ? "#4CAF50" : "#8BC34A";
+      ctx.fillStyle = isHead ? palette.ink : palette.screenDark;
       ctx.fillRect(
         segment.x * cellSizeRef.current,
         segment.y * cellSizeRef.current,
-        cellSizeRef.current - 1,
-        cellSizeRef.current - 1
+        cellSizeRef.current - 2,
+        cellSizeRef.current - 2
       );
+      if (isHead) {
+        ctx.fillStyle = palette.highlight;
+        ctx.fillRect(
+          segment.x * cellSizeRef.current + 4,
+          segment.y * cellSizeRef.current + 4,
+          4,
+          4
+        );
+      }
     });
 
     // Draw food
     const food = foodRef.current;
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(
-      food.x * cellSizeRef.current + cellSizeRef.current / 2,
-      food.y * cellSizeRef.current + cellSizeRef.current / 2,
-      cellSizeRef.current / 2 - 1,
-      0,
-      Math.PI * 2
+    ctx.fillStyle = palette.accent;
+    ctx.fillRect(
+      food.x * cellSizeRef.current + 4,
+      food.y * cellSizeRef.current + 4,
+      cellSizeRef.current - 8,
+      cellSizeRef.current - 8
     );
-    ctx.fill();
 
     // Draw score
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
+    ctx.fillStyle = palette.ink;
+    ctx.font = "16px monospace";
     ctx.textAlign = "left";
 
     if (gameState === "ready") {
-      ctx.fillStyle = "white";
-      ctx.font = "24px Arial";
+      ctx.fillStyle = palette.ink;
+      ctx.font = "16px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("Press any arrow key to start", canvas.width / 2, canvas.height / 2);
+      ctx.fillText("Press arrow key", canvas.width / 2, canvas.height / 2);
     }
   }, [score, highScore, gameState]);
 
@@ -280,23 +301,24 @@ export function SnakeGame() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex justify-between w-full">
+    <div className="relative flex flex-col items-center gap-4">
+      <div className="flex w-full justify-between font-pixel text-xs uppercase">
         <p>{`Score: ${score}`}</p>
+        <p>{`Best: ${highScore}`}</p>
       </div>
       <canvas
         ref={canvasRef}
         width={300}
         height={400}
-        className="border-2 border-text-primary rounded-lg bg-accent touch-none"
+        className="gba-canvas"
       />
 
       {gameState === "paused" && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-accent bg-opacity-80 p-6 rounded-lg text-center">
-          <p className="text-text-primary text-2xl mb-4">Game Paused</p>
+        <div className="pixel-screen absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-6 text-center">
+          <p className="mb-4 font-pixel text-2xl font-black">Paused</p>
           <button
             onClick={() => setGameState("playing")}
-            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50"
+            className="pixel-button px-4 py-2"
           >
             Resume
           </button>
@@ -304,12 +326,12 @@ export function SnakeGame() {
       )}
 
       {gameState === "gameover" && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 p-6 rounded-lg text-center">
-          <p className="text-white text-2xl mb-2">Game Over!</p>
-          <p className="text-white text-xl mb-4">Score: {score}</p>
+        <div className="pixel-screen absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-6 text-center">
+          <p className="mb-2 font-pixel text-2xl font-black">Game Over</p>
+          <p className="mb-4 text-xl font-bold">Score: {score}</p>
           <button
             onClick={restartGame}
-            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50 h-full w-full"
+            className="pixel-button h-full w-full px-4 py-2"
           >
             Play Again
           </button>
@@ -320,7 +342,7 @@ export function SnakeGame() {
         <div className="flex gap-4">
           <button
             onClick={() => setGameState("playing")}
-            className="px-4 py-2 bg-accent rounded-lg text-text-primary hover:bg-accent/50"
+            className="pixel-button px-4 py-2"
           >
             Start Game
           </button>

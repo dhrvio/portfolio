@@ -193,38 +193,38 @@ export function Game2048() {
 
   const getTileColor = (value) => {
     const colors = {
-      0: "bg-gray-800",
-      2: "bg-yellow-200",
-      4: "bg-yellow-300",
-      8: "bg-orange-300",
-      16: "bg-orange-400",
-      32: "bg-red-400",
-      64: "bg-red-500",
-      128: "bg-yellow-500",
-      256: "bg-yellow-600",
-      512: "bg-yellow-700",
-      1024: "bg-yellow-800",
-      2048: "bg-yellow-900",
+      0: "bg-screen-dark/60",
+      2: "bg-cartridge",
+      4: "bg-screen",
+      8: "bg-link-hover",
+      16: "bg-highlight",
+      32: "bg-accent",
+      64: "bg-secondary text-text-primary",
+      128: "bg-primary text-text-primary",
+      256: "bg-highlight",
+      512: "bg-link-hover",
+      1024: "bg-accent",
+      2048: "bg-screen",
     };
-    return colors[value] || "bg-black";
+    return colors[value] || "bg-primary text-text-primary";
   };
 
   return (
     <div className="flex flex-col items-center" ref={containerRef}>
-      <div className="mb-4 flex justify-between w-full max-w-xs">
-        <div className="text-xl font-bold ">Score: {score}</div>
-        <button onClick={startGame} className="px-4 py-1 font-bold text-xl bg-accent text-text-primary rounded">
+      <div className="mb-4 flex w-full max-w-xs items-center justify-between gap-4 font-pixel text-xs uppercase">
+        <div>Score: {score}</div>
+        <button onClick={startGame} className="pixel-button px-3 py-2">
           New Game
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 bg-accent p-2 rounded">
+      <div className="grid grid-cols-4 gap-2 border-2 border-ink bg-screen-dark p-2 shadow-raised">
         {grid.map((value, index) => (
           <div
             key={index}
-            className={`w-16 h-16 flex items-center justify-center rounded font-bold text-xl 
+            className={`flex h-16 w-16 items-center justify-center border-2 border-ink font-pixel text-lg font-black 
               ${getTileColor(value)} 
-              ${value > 0 ? "text-gray-900" : "text-transparent"}`}
+              ${value > 0 ? "text-ink" : "text-transparent"}`}
           >
             {value > 0 ? value : ""}
           </div>
@@ -232,11 +232,11 @@ export function Game2048() {
       </div>
 
       {gameOver && (
-        <div className="mt-4 p-4 rounded-lg text-center">
-          <p className="text-white text-xl">Game Over!</p>
+        <div className="pixel-screen mt-4 p-4 text-center">
+          <p className="font-pixel text-xl font-black">Game Over!</p>
           <button
             onClick={startGame}
-            className="mt-2 px-4 py-1 bg-accent text-text-primary rounded"
+            className="pixel-button mt-3 px-4 py-2"
           >
             Try Again
           </button>

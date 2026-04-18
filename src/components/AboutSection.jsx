@@ -1,46 +1,50 @@
-"use client";
+import { MapPin } from "lucide-react";
 import { resumeData } from "../lib/resumeData";
 
 export default function AboutSection() {
   const { personal } = resumeData;
 
   return (
-    <section id="about" className="py-1">
-      <div className="py-14 px-6 md:px-20 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10 bg-primary rounded-4xl border border-text-light/10 my-40">
-        {/* Left Column */}
-        <div className="flex flex-col items-center space-y-6 reveal">
-          {/* Name + Title */}
-          <h2 className="text-4xl font-extrabold tracking-wider neon-flicker text-center ">
-            {personal.name}
-          </h2>
-          <p className="text-lg text-text-light text-center">{personal.title}</p>
+    <section id="about" className="px-5 py-16 md:py-24">
+      <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-stretch">
+        <div className="pixel-screen reveal flex flex-col justify-between gap-8 p-6 md:p-8">
+          <div>
+            <p className="font-pixel text-xs uppercase text-screen-dark">
+              Save File
+            </p>
+            <h2 className="mt-4 font-pixel text-3xl font-black uppercase leading-tight md:text-4xl">
+              {personal.name}
+            </h2>
+            <p className="mt-4 text-lg font-bold">{personal.title}</p>
+          </div>
 
-          {/* Contact Links */}
-          <div className="flex flex-wrap justify-center items-center gap-4 text-sm tracking-wide uppercase mt-4">
-            <a
-              href={`mailto:${personal.email}`}
-              className="text-accent hover: transition-colors duration-300 underline underline-offset-4"
-            >
-              Email
-            </a>
-            <span className="text-text-light/70">|</span>
-            <a
-              href={personal.linkedin}
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent hover: transition-colors duration-300 underline underline-offset-4"
-            >
-              LinkedIn
-            </a>
+          <div className="space-y-3 font-pixel text-xs uppercase">
+            <p className="flex items-center gap-2">
+              <MapPin size={16} />
+              {personal.location}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a className="pixel-button px-4 py-2" href={`mailto:${personal.email}`}>
+                Email
+              </a>
+              <a
+                className="pixel-button bg-highlight px-4 py-2"
+                href={personal.linkedin}
+                target="_blank"
+                rel="noreferrer"
+              >
+                LinkedIn
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-6 reveal">
-          <h3 className="text-3xl font-bold uppercase tracking-wider underline decoration-accent decoration-2 neon-glow ">
-            About Me
+        <div className="pixel-panel reveal p-6 md:p-8">
+          <p className="font-pixel text-xs uppercase text-highlight">Quest Log</p>
+          <h3 className="mt-3 font-pixel text-2xl font-black uppercase text-text-primary md:text-3xl">
+            About
           </h3>
-          <p className=" leading-loose text-lg">
+          <p className="mt-6 text-lg leading-8 text-text-light">
             {personal.summary}
           </p>
         </div>

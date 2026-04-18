@@ -1,24 +1,24 @@
 export default function ContactSection() {
   return (
-    <div
-      id="contact"
-      className="py-[150px] px-6 md:px-20 text-center bg-primary rounded-4xl border border-text-light/10 my-20 h-[500px]"
-    >
-      <h2 className="text-4xl font-bold neon-flicker reveal mb-6 text-text-primary">
-        Get In Touch
-      </h2>
-
-      <p className="text-text-light mb-8 reveal text-lg max-w-2xl mx-auto">
-        I’m on the lookout for innovative frontend opportunities (remote or on-site).  
-        Let’s build something amazing together!
-      </p>
-
-      <a
-        href="mailto:shettydhruva6@gmail.com"
-        className="inline-block px-10 py-4 border-2 border-accent text-accent uppercase font-semibold rounded-full neon-flicker animate-pulse hover:bg-accent hover:text-primary transition-all duration-300 shadow-neon reveal"
-      >
-        Email Me
-      </a>
-    </div>
+    <section id="contact" className="px-5 py-16 pb-28 md:py-24 md:pb-32">
+      <div className="pixel-screen reveal mx-auto max-w-4xl p-6 text-center md:p-10">
+        <p className="font-pixel text-xs uppercase text-screen-dark">
+          Continue?
+        </p>
+        <h2 className="mt-3 font-pixel text-3xl font-black uppercase md:text-5xl">
+          Get In Touch
+        </h2>
+        <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8">
+          I am looking for frontend opportunities, remote or on-site. Let us
+          build something sharp, responsive, and fun to use.
+        </p>
+        <a
+          href="mailto:shettydhruva6@gmail.com"
+          className="pixel-button mt-8 px-8 py-3 text-sm"
+        >
+          Email Me
+        </a>
+      </div>
+    </section>
   );
 }
